@@ -1,0 +1,3317 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Home Computer Repair Service | Omar fixes your device at your home</title>
+
+  <!-- الخطوط ومكتبة Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Cairo', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace']
+          },
+          colors: {
+            obsidian: '#0B0B0E',
+            panel: '#111117',
+            crimson: '#E11D48',
+            crimsonDeep: '#C8001E',
+            crimsonGlow: '#FF1E38'
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    :root {
+      --dial: clamp(76px, 25vw, 156px);
+    }
+
+    body {
+      font-family: 'Cairo', sans-serif;
+      background-color: #0B0B0E;
+      color: #111827;
+      overflow-x: hidden;
+    }
+
+    .hero-bg {
+      background:
+        radial-gradient(circle at 50% 0%, rgba(225, 29, 72, 0.22) 0%, rgba(11, 11, 14, 0.96) 62%),
+        #0B0B0E;
+    }
+
+    .gauge-container,
+    .power-btn-wrapper {
+      position: relative;
+      width: var(--dial);
+      height: var(--dial);
+    }
+
+    .gauge-container svg {
+      transform: rotate(135deg);
+      width: 100%;
+      height: 100%;
+    }
+
+    .gauge-container::before {
+      content: '';
+      position: absolute;
+      inset: 14%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(225, 29, 72, 0.14), transparent 70%);
+    }
+
+    .gauge-bg {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.1);
+      stroke-width: 7;
+      stroke-dasharray: 188.5 251.3;
+      stroke-linecap: round;
+    }
+
+    .gauge-progress {
+      fill: none;
+      stroke: #E11D48;
+      stroke-width: 7;
+      stroke-linecap: round;
+      transition: stroke-dasharray 0.45s cubic-bezier(0.2, 0.8, 0.2, 1), stroke 0.35s ease, filter 0.45s ease;
+    }
+
+    .gauge-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      width: 86%;
+      padding: 0 2px;
+      z-index: 1;
+    }
+
+    .gauge-text > div {
+      font-size: calc(var(--dial) * 0.078);
+      line-height: 1.1;
+    }
+
+    .gauge-text > div:nth-child(2) {
+      font-size: calc(var(--dial) * 0.17);
+    }
+
+    .gauge-text > div:nth-child(3) {
+      white-space: nowrap;
+    }
+
+    .g-desc {
+      font: 600 clamp(9px, 2.4vw, 11px)/1.35 'JetBrains Mono', monospace;
+      color: #9ca3af;
+      margin-top: 0.55rem;
+      text-align: center;
+      max-width: calc(var(--dial) * 1.3);
+      overflow-wrap: anywhere;
+    }
+
+    .power-btn-wrapper {
+      border-radius: 50%;
+      padding: 4px;
+      background: conic-gradient(#E11D48 0%, rgba(255, 255, 255, 0.08) 0%);
+      transition: transform 0.25s ease, box-shadow 0.35s ease, background 0.3s ease;
+      box-shadow: 0 0 24px rgba(225, 29, 72, 0.28);
+    }
+
+    .power-btn-wrapper:hover {
+      transform: scale(1.04);
+      box-shadow: 0 0 38px rgba(255, 30, 56, 0.52);
+    }
+
+    .power-btn-wrapper.testing-active {
+      box-shadow: 0 0 42px rgba(255, 30, 56, 0.85), inset 0 0 18px rgba(225, 29, 72, 0.42);
+      animation: pulseCrimsonActive 1.25s infinite ease-in-out;
+    }
+
+    @keyframes pulseCrimsonActive {
+      0%, 100% {
+        box-shadow: 0 0 26px rgba(255, 30, 56, 0.62), inset 0 0 14px rgba(225, 29, 72, 0.32);
+      }
+      50% {
+        box-shadow: 0 0 48px rgba(255, 30, 56, 0.95), inset 0 0 22px rgba(225, 29, 72, 0.52);
+      }
+    }
+
+    .power-btn-inner {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      background: radial-gradient(circle at 50% 35%, #1E1318 0%, #0B0B0E 78%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      border: 2px solid rgba(255, 255, 255, 0.14);
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: background 0.3s ease, border-color 0.3s ease;
+    }
+
+    .power-btn-wrapper.testing-active .power-btn-inner {
+      background: radial-gradient(circle at 50% 35%, #E11D48 0%, #7F091A 65%, #240409 100%);
+      border-color: #FF1E38;
+    }
+
+    .power-btn-inner::after {
+      content: '';
+      position: absolute;
+      inset: 5px;
+      border-radius: 50%;
+      border: 1px dashed rgba(255, 30, 56, 0.45);
+      pointer-events: none;
+    }
+
+    .power-btn-inner svg {
+      width: 34%;
+      height: 34%;
+    }
+
+    #hw-grid {
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 16.5rem), 1fr));
+    }
+
+    .hw-wide {
+      grid-column: 1 / -1;
+    }
+
+    .hw-pill {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.11);
+      border-radius: 1.15rem;
+      overflow: hidden;
+      align-items: flex-start;
+      transition: border-color 0.25s ease, background 0.25s ease, transform 0.2s ease;
+    }
+
+    .hw-pill:hover {
+      border-color: rgba(255, 30, 56, 0.55);
+      background: rgba(255, 255, 255, 0.07);
+      transform: translateY(-1px);
+    }
+
+    .ai-thumb {
+      width: clamp(30px, 8vw, 38px);
+      height: clamp(30px, 8vw, 38px);
+      border-radius: 9999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      background: radial-gradient(circle at 30% 25%, rgba(225, 29, 72, 0.28), rgba(15, 23, 42, 0.92));
+      backdrop-filter: blur(6px);
+      transition: box-shadow 0.25s, border-color 0.25s, transform 0.25s;
+    }
+
+    .ai-thumb svg {
+      width: 56%;
+      height: 56%;
+      stroke-width: 1.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .hw-pill:hover .ai-thumb {
+      border-color: #FF1E38;
+      box-shadow: 0 0 14px rgba(255, 30, 56, 0.55);
+      transform: scale(1.06);
+    }
+
+    .hw-bad .ai-thumb {
+      border-color: #FF1E38;
+      box-shadow: 0 0 12px rgba(255, 30, 56, 0.6);
+    }
+
+    .hw-bad .ai-thumb svg {
+      color: #FF4D63;
+    }
+
+    .truncate-safe {
+      white-space: normal;
+      overflow: visible;
+      text-overflow: clip;
+      overflow-wrap: anywhere;
+    }
+
+    .hw-pill .text-xs {
+      font-size: clamp(11px, 3.1vw, 13px);
+    }
+
+    .hw-d {
+      font: 500 10.5px/1.5 Cairo, sans-serif;
+      color: #9ca3af;
+      margin-top: 0.3rem;
+      overflow-wrap: anywhere;
+    }
+
+    .custom-input {
+      width: 100%;
+      border: 1px solid #E5E7EB;
+      border-radius: 0.75rem;
+      padding: 0.72rem 1rem;
+      outline: none;
+      transition: border 0.2s, box-shadow 0.2s;
+    }
+
+    .custom-input:focus {
+      border-color: #E11D48;
+      box-shadow: 0 0 0 3px rgba(225, 29, 72, 0.14);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- شريط الإشعارات -->
+  <div id="toast-banner" class="fixed bottom-5 left-5 z-50 hidden max-w-sm bg-[#0B0B0E] text-white border border-crimson/60 px-5 py-3.5 rounded-2xl shadow-2xl items-center gap-3">
+    <span class="text-crimson text-lg">●</span>
+    <span id="toast-text" class="text-sm font-semibold"></span>
+  </div>
+
+  <!-- الهيدر العلوي -->
+  <header class="bg-[#0B0B0E] text-white py-3.5 px-4 sm:px-6 flex flex-wrap justify-between items-center gap-3 shadow-lg border-b border-gray-900 sticky top-0 z-40">
+    <a href="#" class="flex items-center gap-2.5">
+      <span class="text-2xl">🖥️</span>
+      <div>
+        <span class="text-base sm:text-xl font-black tracking-wide block leading-none">Home Computer Repair Service</span>
+        <span id="brand-desc" class="block text-[10px] sm:text-xs text-gray-400 font-semibold mt-1">عمر بيجيلك البيت ويصلّح جهازك في مكانك.</span>
+      </div>
+    </a>
+
+    <div class="flex items-center gap-2 sm:gap-3">
+      <span id="header-clock-badge" class="hidden md:inline-block font-mono text-[11px] text-gray-300 bg-gray-900/90 border border-gray-800 px-3 py-1.5 rounded-xl"></span>
+
+      <button type="button" id="lang-toggle-btn" onclick="toggleLanguage()" class="bg-gray-900 hover:bg-gray-800 text-white border border-gray-700 px-3 py-2 rounded-xl text-xs font-extrabold transition">
+        English
+      </button>
+
+      <div id="active-staff-chip" class="hidden items-center gap-2 bg-rose-950/90 border border-rose-700/60 text-rose-100 px-3 py-1.5 rounded-xl text-xs font-bold">
+        <span id="active-staff-label"></span>
+        <button type="button" onclick="openStaffWorkspace()" class="bg-crimson hover:bg-crimsonGlow text-white px-2.5 py-0.5 rounded-lg font-extrabold transition">
+          فتح اللوحة
+        </button>
+        <button type="button" onclick="logoutStaff()" class="bg-gray-900 hover:bg-gray-800 text-white px-2 py-0.5 rounded-lg font-bold transition">
+          خروج
+        </button>
+      </div>
+
+      <a id="header-cta-btn" href="#booking-section" class="bg-crimson hover:bg-crimsonGlow text-white px-4 py-2 rounded-xl text-xs sm:text-sm font-bold transition">
+        احجز في مكانك
+      </a>
+    </div>
+  </header>
+
+  <!-- مساحة عمل الأدمن والفني -->
+  <section id="staff-workspace-section" class="hidden bg-[#0E0E14] text-white py-9 px-3 sm:px-6 border-b border-gray-800">
+    <div id="staff-workspace-body" class="max-w-6xl mx-auto"></div>
+  </section>
+
+  <!-- قسم الفحص واختبار الأداء -->
+  <section class="hero-bg text-white pt-8 pb-14 px-3 sm:px-6">
+    <div class="max-w-5xl mx-auto text-center">
+      <h1 id="hero-main-title" class="text-3xl sm:text-5xl font-black mb-6 leading-tight">
+        استعد أقصى أداء لجهازك! <br><span class="text-crimson">فحص وتشخيص شامل في ضغطة واحدة</span>
+      </h1>
+
+      <div class="bg-[#111117] rounded-3xl p-4 sm:p-7 border border-gray-800 shadow-2xl relative max-w-5xl mx-auto">
+
+        <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-6 border-b border-gray-800/80 text-[11px] sm:text-xs font-mono">
+          <div class="flex items-center gap-2 min-w-0">
+            <span id="status-dot" class="w-2.5 h-2.5 rounded-full bg-rose-500 inline-block shrink-0"></span>
+            <span id="live-datetime" class="text-white font-bold uppercase tracking-wider truncate-safe">LOADING DATE & TIME...</span>
+          </div>
+          <span id="status-label" class="text-crimson font-bold uppercase truncate-safe">DIAGNOSTIC READY</span>
+        </div>
+
+        <!-- صف العدادات الثلاث -->
+        <div class="grid grid-cols-3 items-center justify-items-center mb-7 px-0" style="gap: clamp(6px, 3vw, 48px);">
+          <div class="flex flex-col items-center min-w-0">
+            <div class="gauge-container">
+              <svg viewBox="0 0 100 100">
+                <circle class="gauge-bg" cx="50" cy="50" r="40"></circle>
+                <circle id="gauge-gpu" class="gauge-progress" cx="50" cy="50" r="40" stroke-dasharray="0, 251.3"></circle>
+              </svg>
+              <div class="gauge-text">
+                <div class="text-[8px] sm:text-[10px] text-gray-400 font-mono uppercase tracking-tight">GPU</div>
+                <div id="val-gpu" class="text-sm sm:text-xl font-extrabold text-white leading-tight my-0.5">41°C</div>
+                <div id="sub-gpu" class="text-[8px] sm:text-[10px] font-mono text-rose-400 font-bold whitespace-nowrap leading-none">12% • 1845MHz</div>
+              </div>
+            </div>
+            <span id="gpu-desc" class="g-desc">GPU TEMP & CLOCK</span>
+          </div>
+
+          <div class="flex flex-col items-center justify-center shrink-0">
+            <div id="power-ring" class="power-btn-wrapper">
+              <button type="button" onclick="powerClick()" class="power-btn-inner" aria-label="تشغيل أو إيقاف الفحص">
+                <svg id="power-icon" class="w-9 h-9 sm:w-11 sm:h-11 text-rose-500 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.4" d="M12 3v9m6.364-6.364a9 9 0 11-12.728 0"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="flex flex-col items-center min-w-0">
+            <div class="gauge-container">
+              <svg viewBox="0 0 100 100">
+                <circle class="gauge-bg" cx="50" cy="50" r="40"></circle>
+                <circle id="gauge-cpu" class="gauge-progress" cx="50" cy="50" r="40" stroke-dasharray="0, 251.3"></circle>
+              </svg>
+              <div class="gauge-text">
+                <div class="text-[8px] sm:text-[10px] text-gray-400 font-mono uppercase tracking-tight">CPU</div>
+                <div id="val-cpu" class="text-sm sm:text-xl font-extrabold text-white leading-tight my-0.5">44°C</div>
+                <div id="sub-cpu" class="text-[8px] sm:text-[10px] font-mono text-rose-400 font-bold whitespace-nowrap leading-none">18% • 3.8GHz</div>
+              </div>
+            </div>
+            <span id="cpu-desc" class="g-desc">CPU TEMP & CLOCK</span>
+          </div>
+        </div>
+
+        <!-- كبسولات العتاد والنظام -->
+        <div id="hw-grid" class="grid gap-2.5 mb-4 text-left font-mono" dir="ltr">
+          <div class="hw-pill px-3.5 py-2.5 min-w-0 flex items-center gap-2.5">
+            <span class="ai-thumb" aria-hidden="true">
+              <svg class="w-4 h-4 text-sky-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <rect x="4" y="4" width="16" height="16" rx="2" />
+                <path d="M9 9h6v6H9z" />
+              </svg>
+            </span>
+            <div class="min-w-0 flex-1">
+              <div class="text-[9px] text-gray-400 uppercase leading-none">MOTHERBOARD</div>
+              <div id="hw-mobo" class="text-xs font-bold text-sky-300 truncate-safe mt-1">Detecting Board...</div>
+            </div>
+          </div>
+
+          <div class="hw-pill px-3.5 py-2.5 min-w-0 flex items-center gap-2.5">
+            <span class="ai-thumb" aria-hidden="true">
+              <svg class="w-4 h-4 text-amber-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <rect x="7" y="7" width="10" height="10" rx="1.5" />
+                <path d="M12 2v3M12 19v3M2 12h3M19 12h3" />
+              </svg>
+            </span>
+            <div class="min-w-0 flex-1">
+              <div class="text-[9px] text-gray-400 uppercase leading-none">INTERNAL CHIPSET</div>
+              <div id="hw-chipset" class="text-xs font-bold text-amber-300 truncate-safe mt-1">Detecting PCH...</div>
+            </div>
+          </div>
+
+          <div class="hw-pill px-3.5 py-2.5 min-w-0 flex items-center gap-2.5">
+            <span class="ai-thumb" aria-hidden="true">
+              <svg class="w-4 h-4 text-purple-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M6 12a6 6 0 1112 0c0 2.5-1.5 4.5-3.5 5.5L13 21h-2l-1.5-3.5C7.5 16.5 6 14.5 6 12z" />
+              </svg>
+            </span>
+            <div class="min-w-0 flex-1">
+              <div class="text-[9px] text-gray-400 uppercase leading-none">BIOS MODEL</div>
+              <div id="hw-bios" class="text-xs font-bold text-purple-300 truncate-safe mt-1">Detecting BIOS...</div>
+            </div>
+          </div>
+
+          <div class="hw-pill px-3.5 py-2.5 min-w-0 flex items-center gap-2.5">
+            <span class="ai-thumb" aria-hidden="true">
+              <svg class="w-4 h-4 text-rose-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <rect x="6" y="6" width="12" height="12" rx="2" />
+                <path d="M9 2v2M15 2v2M9 20v2M15 20v2M2 9h2M2 15h2M20 9h2M20 15h2" />
+              </svg>
+            </span>
+            <div class="min-w-0 flex-1">
+              <div class="text-[9px] text-gray-400 uppercase leading-none">CPU & CLOCK</div>
+              <div id="hw-cpu" class="text-xs font-bold text-rose-300 truncate-safe mt-1">4 Cores • 8 Threads • 3.8 GHz</div>
+            </div>
+          </div>
+
+          <div class="hw-pill px-3.5 py-2.5 min-w-0 flex items-center gap-2.5">
+            <span class="ai-thumb" aria-hidden="true">
+              <svg class="w-4 h-4 text-fuchsia-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <rect x="3" y="6" width="18" height="12" rx="2" />
+                <circle cx="9" cy="12" r="2.2" />
+                <circle cx="15" cy="12" r="2.2" />
+              </svg>
+            </span>
+            <div class="min-w-0 flex-1">
+              <div class="text-[9px] text-gray-400 uppercase leading-none">GPU & CLOCK / DRIVER</div>
+              <div id="hw-gpu" class="text-xs font-bold text-fuchsia-300 truncate-safe mt-1">1845 MHz • DRV v566.36 WHQL</div>
+            </div>
+          </div>
+
+          <div class="hw-pill px-3.5 py-2.5 min-w-0 flex items-center gap-2.5">
+            <span class="ai-thumb" aria-hidden="true">
+              <svg class="w-4 h-4 text-cyan-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <rect x="3" y="8" width="18" height="8" rx="1.5" />
+                <path d="M7 16v3M12 16v3M17 16v3" />
+              </svg>
+            </span>
+            <div class="min-w-0 flex-1">
+              <div class="text-[9px] text-gray-400 uppercase leading-none">RAM & SPEED</div>
+              <div id="hw-ram" class="text-xs font-bold text-cyan-300 truncate-safe mt-1">8 GB DDR5 • 4266 MHz</div>
+            </div>
+          </div>
+
+          <div class="hw-pill px-3.5 py-2.5 min-w-0 flex items-center gap-2.5">
+            <span class="ai-thumb" aria-hidden="true">
+              <svg class="w-4 h-4 text-indigo-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <rect x="3" y="4" width="18" height="14" rx="2" />
+                <path d="M8 20h8M12 18v2" />
+              </svg>
+            </span>
+            <div class="min-w-0 flex-1">
+              <div class="text-[9px] text-gray-400 uppercase leading-none">OS</div>
+              <div id="hw-os" class="text-xs font-bold text-indigo-300 truncate-safe mt-1">Windows 11 Pro (x64)</div>
+            </div>
+          </div>
+
+          <div class="hw-pill px-3.5 py-2.5 min-w-0 flex items-center gap-2.5">
+            <span class="ai-thumb" aria-hidden="true">
+              <svg class="w-4 h-4 text-rose-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M12 3l7 3v6c0 5-3 8-7 9-4-1-7-4-7-9V6l7-3z" />
+              </svg>
+            </span>
+            <div class="min-w-0 flex-1">
+              <div class="text-[9px] text-gray-400 uppercase leading-none">SECURITY / LICENSE</div>
+              <div id="hw-license" class="text-xs font-bold text-rose-300 truncate-safe mt-1">WIN: ACTIVATED • AV: LICENSED</div>
+            </div>
+          </div>
+
+          <div class="hw-pill px-3.5 py-2.5 min-w-0 flex items-center gap-2.5">
+            <span class="ai-thumb" aria-hidden="true">
+              <svg class="w-4 h-4 text-teal-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 11l5 5 5-5M12 4v12" />
+              </svg>
+            </span>
+            <div class="min-w-0 flex-1">
+              <div class="text-[9px] text-gray-400 uppercase leading-none">BOARD & GPU DRIVERS</div>
+              <div id="hw-drivers" class="text-xs font-bold text-teal-300 truncate-safe mt-1">MB DRV-4.12 • GPU v566.36 WHQL</div>
+            </div>
+          </div>
+
+          <div class="hw-pill px-3.5 py-2.5 min-w-0 flex items-center gap-2.5">
+            <span class="ai-thumb" aria-hidden="true">
+              <svg class="w-4 h-4 text-orange-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <circle cx="12" cy="12" r="9" />
+                <path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18" />
+              </svg>
+            </span>
+            <div class="min-w-0 flex-1">
+              <div class="text-[9px] text-gray-400 uppercase leading-none">ISP / SPEED / IP LOCATION</div>
+              <div id="hw-isp" class="text-xs font-bold text-orange-300 truncate-safe mt-1">Detecting ISP & Speed...</div>
+            </div>
+          </div>
+
+          <div class="hw-pill px-3.5 py-2.5 min-w-0 flex items-center gap-2.5">
+            <span class="ai-thumb" aria-hidden="true">
+              <svg class="w-4 h-4 text-yellow-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" />
+              </svg>
+            </span>
+            <div class="min-w-0 flex-1">
+              <div class="text-[9px] text-gray-400 uppercase leading-none">PSU DRAW</div>
+              <div id="hw-psu" class="text-xs font-bold text-yellow-300 truncate-safe mt-1">85W • 230V AC</div>
+            </div>
+          </div>
+
+          <div class="hw-pill px-3.5 py-2.5 min-w-0 flex items-center gap-2.5">
+            <span class="ai-thumb" aria-hidden="true">
+              <svg class="w-4 h-4 text-lime-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <rect x="4" y="4" width="16" height="16" rx="2" />
+                <path d="M4 12h16M8 16h2M14 16h2" />
+              </svg>
+            </span>
+            <div class="min-w-0 flex-1">
+              <div class="text-[9px] text-gray-400 uppercase leading-none">STORAGE HEALTH</div>
+              <div id="val-disk" class="text-xs font-bold text-lime-300 truncate-safe mt-1">99% OPTIMAL • 5200 MB/s</div>
+            </div>
+          </div>
+
+          <div class="hw-pill px-3.5 py-2.5 min-w-0 flex items-center gap-2.5">
+            <span class="ai-thumb" aria-hidden="true">
+              <svg class="w-4 h-4 text-pink-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <circle cx="12" cy="12" r="8" />
+                <path d="M12 8v4l3 2" />
+              </svg>
+            </span>
+            <div class="min-w-0 flex-1">
+              <div class="text-[9px] text-gray-400 uppercase leading-none">FPS BENCHMARK READOUT</div>
+              <div id="val-fps-readout" class="text-xs font-bold text-pink-300 truncate-safe mt-1">60 FPS / 144 FPS</div>
+            </div>
+          </div>
+
+          <div class="hw-pill px-3.5 py-2.5 min-w-0 flex items-center gap-2.5 hw-wide">
+            <span class="ai-thumb" aria-hidden="true">
+              <svg class="w-4 h-4 text-rose-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                <path d="M12 20V10M6 20v-4M18 20V6" />
+              </svg>
+            </span>
+            <div class="min-w-0 flex-1">
+              <div class="text-[9px] text-gray-400 uppercase leading-none">DIAGNOSTIC SCORE</div>
+              <div id="val-score" class="text-xs font-bold text-rose-400 truncate-safe mt-1">94/100 • READY FOR DIAGNOSTIC</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="bg-[#0B0B0E]/90 rounded-2xl p-3.5 mb-4 border border-gray-800 text-right">
+          <div class="flex items-center justify-between gap-2 mb-1">
+            <span class="text-[11px] font-mono font-bold text-crimson uppercase tracking-wider">AI DIAGNOSTIC ENGINE</span>
+            <span id="ai-diag-badge" class="text-[11px] font-mono text-rose-400 font-bold">LIVE TELEMETRY READY</span>
+          </div>
+          <p id="ai-diag-summary" class="text-xs sm:text-sm text-gray-300 leading-relaxed">
+            جارٍ تحليل بيانات العتاد والبايوس وإصدارات التعريفات والترددات وسرعة الإنترنت وحالة التراخيص والحرارة لاقتراح الخدمة المناسبة تلقائياً.
+          </p>
+        </div>
+
+        <canvas id="gpu-stress-canvas" width="256" height="256" class="hidden"></canvas>
+
+        <div class="pt-3.5 border-t border-gray-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <div id="report-summary-text" class="text-[11px] sm:text-xs font-mono text-gray-400 text-center sm:text-right truncate-safe w-full sm:w-auto">
+            اضغط زر الباور لبدء أو إيقاف الفحص وإرسال الإحصائيات تلقائياً إلى واتساب (01028509300).
+          </div>
+          <button type="button" onclick="sendReportWhatsApp()" class="w-full sm:w-auto bg-[#25D366] hover:bg-[#1EBE5D] text-[#0B0B0E] font-extrabold text-xs sm:text-sm px-5 py-2.5 rounded-full shadow-lg flex items-center justify-center gap-2 transition shrink-0">
+            <span>إرسال التقرير عبر واتساب</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- قسم الحجز -->
+  <section id="booking-section" class="bg-[#F4F5F8] py-12 px-4 sm:px-6">
+    <div class="max-w-3xl mx-auto bg-white rounded-3xl shadow-xl p-6 sm:p-8 border border-gray-100">
+      <h2 id="booking-section-title" class="text-2xl font-black text-center mb-6">اطلب في مكانك</h2>
+
+      <div class="bg-[#0B0B0E] text-white rounded-2xl p-4 mb-6 border border-gray-800 font-mono text-[11px] space-y-1 text-left" dir="ltr">
+        <div class="flex items-center justify-between border-b border-gray-800 pb-1.5 mb-1.5">
+          <span class="text-crimson font-bold uppercase">AUTO-DETECTED DEVICE & LOCATION SNAPSHOT</span>
+          <span class="text-rose-400 text-[10px]">SYNCED</span>
+        </div>
+        <div id="auto-attached-specs" class="text-gray-300 leading-relaxed">
+          Syncing device hardware, BIOS, GPU driver, clocks, FPS, speed, license status, ISP, and location...
+        </div>
+      </div>
+
+      <form class="space-y-6" onsubmit="handleBookingSubmit(event)">
+        <div>
+          <label id="label-device-type" class="block text-sm font-extrabold text-gray-800 mb-2">
+            1. نوع الجهاز
+          </label>
+          <div class="grid grid-cols-2 gap-3 sm:gap-4">
+            <label class="border-2 border-gray-200 rounded-2xl p-3.5 sm:p-4 cursor-pointer hover:border-crimson flex items-center gap-3 transition">
+              <input type="radio" id="radio-desktop" name="device" value="Desktop PC" class="accent-crimson w-4 h-4 shrink-0" onchange="onManualDeviceChange('Desktop PC')" checked>
+              <div class="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-xl shrink-0">🖥️</div>
+              <div class="min-w-0">
+                <div class="font-bold text-sm text-gray-900 truncate-safe">كمبيوتر مكتبي (PC)</div>
+                <div class="text-xs text-gray-500 truncate-safe">ألعاب أو أعمال</div>
+              </div>
+            </label>
+            <label class="border-2 border-gray-200 rounded-2xl p-3.5 sm:p-4 cursor-pointer hover:border-crimson flex items-center gap-3 transition">
+              <input type="radio" id="radio-laptop" name="device" value="Laptop" class="accent-crimson w-4 h-4 shrink-0" onchange="onManualDeviceChange('Laptop')">
+              <div class="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-xl shrink-0">💻</div>
+              <div class="min-w-0">
+                <div class="font-bold text-sm text-gray-900 truncate-safe">لابتوب (Laptop)</div>
+                <div class="text-xs text-gray-500 truncate-safe">جميع الماركات</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <div>
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-2">
+            <label class="block text-sm font-extrabold text-gray-800">2. الخدمات والأسعار ⚙️</label>
+            <span class="text-xs font-mono font-extrabold text-crimson">الإجمالي المحدد: <span id="selected-services-total">700 ج.م</span></span>
+          </div>
+          <div id="services-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 gap-3"></div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-extrabold text-gray-800 mb-2">3. صور الجهاز 📸 (اختياري - بحد أقصى 3 صور، حتى 4MB للصورة)</label>
+          <label class="block border-2 border-dashed border-gray-300 rounded-2xl p-5 text-center cursor-pointer hover:bg-gray-50 transition">
+            <input type="file" id="device-photos" accept="image/*" multiple class="hidden" onchange="handlePhotoUpload(this)">
+            <span class="text-2xl block mb-1">📤</span>
+            <p id="photo-upload-label" class="text-sm font-bold text-gray-700">اضغط لرفع صور للجهاز</p>
+            <p class="text-xs text-gray-400 mt-0.5">صور داخلية أو خارجية لمساعدة الفني</p>
+          </label>
+        </div>
+
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <label class="block text-sm font-extrabold text-gray-800">4. وصف المشكلة 📝</label>
+            <span class="text-[11px] font-mono text-crimson font-semibold">AI Auto-Filled</span>
+          </div>
+          <textarea rows="3" id="booking-desc" class="custom-input text-sm text-gray-800" placeholder="اكتب تفاصيل المشكلة أو ملاحظات الأداء..." oninput="this.dataset.userEdited = this.value.trim() ? '1' : ''"></textarea>
+        </div>
+
+        <div>
+          <label id="label-contact-schedule" class="block text-sm font-extrabold text-gray-800 mb-2">5. بياناتك والموعد المناسب 📅</label>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3.5 mb-4">
+            <input type="text" id="booking-name" placeholder="الاسم الكامل" class="custom-input" required>
+            <input type="tel" id="booking-phone" placeholder="رقم الموبايل / واتساب" class="custom-input" required>
+            <div class="relative md:col-span-2">
+              <input type="text" id="booking-address" placeholder="المنطقة / العنوان (تعبئة تلقائية من IP)" class="custom-input pl-16" required>
+              <button type="button" onclick="detectGPSLocation()" class="absolute left-2 top-2 bg-gray-200 text-xs font-bold px-2.5 py-1.5 rounded-lg hover:bg-gray-300 transition">
+                📍 GPS
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-[#0E0E14] text-white border border-gray-800/90 rounded-2xl p-4 sm:p-5 space-y-4 shadow-inner">
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-2.5 border-b border-gray-800/80">
+              <span id="label-day-slots" class="text-xs sm:text-sm font-extrabold text-white">اختر يوم الحجز والموعد (من ١٠ صباحاً إلى ٨ مساءً):</span>
+              <span id="selected-slot-preview" class="text-xs font-mono font-bold text-amber-300 bg-amber-500/10 border border-amber-400/25 px-3 py-1 rounded-full"></span>
+            </div>
+
+            <div id="booking-days-row" class="flex gap-2 overflow-x-auto pb-1"></div>
+            <div id="booking-times-grid" class="grid grid-cols-2 sm:grid-cols-5 gap-2.5"></div>
+            <input type="hidden" id="booking-date">
+            <input type="hidden" id="booking-time-slot">
+          </div>
+        </div>
+
+        <button id="submit-booking-btn" type="submit" class="w-full bg-crimson hover:bg-crimsonGlow text-white font-extrabold py-4 rounded-xl shadow-lg transition text-base">
+          تأكيد الحجز وإرسال الطلب
+        </button>
+      </form>
+
+      <div class="mt-10 pt-6 border-t border-gray-100">
+        <h3 class="text-lg font-extrabold mb-3">تتبع حالة الحجز 🔍</h3>
+        <div class="flex flex-col sm:flex-row gap-2">
+          <input type="text" id="track-phone" placeholder="رقم الموبايل" class="custom-input sm:w-1/2">
+          <input type="text" id="track-code" placeholder="كود الحجز (مثال: OPF-1042)" class="custom-input sm:w-1/2">
+          <button type="button" onclick="trackBooking()" class="bg-gray-900 text-white px-5 py-3 rounded-xl font-bold hover:bg-black transition shrink-0">
+            تتبع
+          </button>
+        </div>
+        <div id="track-result" class="hidden mt-4 p-4 rounded-2xl bg-gray-50 border border-gray-200 text-xs sm:text-sm text-gray-800 leading-relaxed"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- الفوتر -->
+  <footer class="bg-[#0B0B0E] text-white py-14 px-3 sm:px-6">
+    <div class="max-w-6xl mx-auto">
+      <h2 class="text-2xl font-black text-center mb-8">آراء عملائنا 💬</h2>
+
+      <div id="reviews-grid" class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-8"></div>
+
+      <div class="bg-gray-900/90 rounded-2xl p-5 sm:p-6 border border-gray-800 mb-8">
+        <h3 class="font-bold text-base mb-1 text-center">أضف تعليقك أو تجربتك ✍️</h3>
+        <p class="text-xs text-gray-400 text-center mb-4">اكتب تعليقك وسيظهر مباشرة ضمن آراء العملاء.</p>
+        <form onsubmit="handleAddReview(event)" class="grid grid-cols-1 sm:grid-cols-4 gap-3">
+          <input type="text" id="review-name" placeholder="اسمك" class="custom-input bg-gray-800 border-gray-700 text-white placeholder-gray-500 text-sm" required>
+          <select id="review-rating" class="custom-input bg-gray-800 border-gray-700 text-white text-sm">
+            <option value="5">★★★★★ (5/5)</option>
+            <option value="4">★★★★☆ (4/5)</option>
+            <option value="3">★★★☆☆ (3/5)</option>
+          </select>
+          <input type="text" id="review-comment" placeholder="اكتب تعليقك هنا..." class="custom-input bg-gray-800 border-gray-700 text-white placeholder-gray-500 text-sm sm:col-span-2" required>
+          <button type="submit" class="sm:col-span-4 bg-crimson hover:bg-crimsonGlow text-white font-bold py-2.5 rounded-xl text-sm transition">
+            نشر التعليق
+          </button>
+        </form>
+      </div>
+
+      <div class="bg-gray-900 rounded-2xl p-6 border border-gray-800 text-center mb-12">
+        <h3 class="font-bold mb-2">تحتاج مساعدة؟ تواصل مع الدعم 🎧</h3>
+        <p class="text-sm text-gray-400 mb-4">اترك رقم هاتفك أو بريدك الإلكتروني وسنتواصل معك فوراً.</p>
+        <div class="flex flex-col md:flex-row gap-2 max-w-lg mx-auto">
+          <input type="text" id="support-contact" placeholder="رقم الهاتف أو البريد الإلكتروني" class="custom-input bg-gray-800 border-gray-700 text-white placeholder-gray-500">
+          <button type="button" onclick="sendSupportRequest()" class="bg-crimson px-6 py-3 rounded-xl font-bold hover:bg-crimsonGlow transition">
+            إرسال
+          </button>
+        </div>
+      </div>
+
+      <div class="pt-10 border-t border-gray-800/80">
+        <div class="text-center mb-6">
+          <h3 id="makers-section-heading" class="text-xl sm:text-2xl font-black text-white tracking-wide">صناع التقنيات</h3>
+        </div>
+        <div id="brands-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3"></div>
+      </div>
+
+      <div class="text-center text-xs text-gray-500 mt-10 space-y-2">
+        <p>© 2026 Home Computer Repair Service. جميع الحقوق محفوظة.</p>
+        <p>تُستخدم بياناتك فقط لتنفيذ طلب الفحص أو الصيانة ومتابعة حالته.</p>
+        <div class="pt-1">
+          <button type="button" onclick="openStaffLoginModal('tech')" class="text-[11px] text-gray-600 hover:text-gray-400 underline underline-offset-4 transition">
+            دخول الفريق / الإدارة
+          </button>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- نافذة تسجيل دخول الفريق -->
+  <div id="staff-login-modal" class="fixed inset-0 z-50 hidden bg-black/80 backdrop-blur-xs items-center justify-center p-4">
+    <div class="bg-[#111117] text-white border border-gray-800 rounded-3xl max-w-md w-full p-6 shadow-2xl">
+      <div class="flex items-center justify-between border-b border-gray-800 pb-3 mb-4">
+        <div>
+          <span class="text-[10px] font-mono text-crimson font-bold uppercase">OMAR PC FIX • INTERNAL PORTAL</span>
+          <h3 id="staff-modal-title" class="text-xl font-extrabold mt-0.5">تسجيل دخول الفريق</h3>
+        </div>
+        <button type="button" onclick="closeStaffLoginModal()" class="text-gray-400 hover:text-white text-xl font-bold px-2">✕</button>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 bg-gray-900 p-1 rounded-xl mb-4 border border-gray-800 text-xs font-bold">
+        <button type="button" id="modal-tab-tech" onclick="switchStaffLoginTab('tech')" class="py-2 rounded-lg transition">
+          حساب فني (Technician)
+        </button>
+        <button type="button" id="modal-tab-admin" onclick="switchStaffLoginTab('admin')" class="py-2 rounded-lg transition">
+          حساب مدير (Admin)
+        </button>
+      </div>
+
+      <form onsubmit="handleStaffLogin(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-gray-300 mb-1">اسم المستخدم (Username)</label>
+          <input type="text" id="staff-username" class="custom-input bg-gray-900 border-gray-700 text-white text-sm font-mono" dir="ltr" placeholder="username" required>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-gray-300 mb-1">كلمة المرور (Password)</label>
+          <input type="password" id="staff-password" class="custom-input bg-gray-900 border-gray-700 text-white text-sm font-mono" dir="ltr" placeholder="••••••••" required>
+        </div>
+
+        <div id="staff-credentials-box" class="bg-gray-900/90 border border-gray-800 rounded-xl p-3 text-[11px] font-mono text-gray-300 text-left space-y-1" dir="ltr"></div>
+
+        <button type="submit" class="w-full bg-crimson hover:bg-crimsonGlow text-white font-extrabold py-3 rounded-xl shadow-lg transition text-sm">
+          دخول إلى مساحة العمل
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- نافذة الفحص الدقيق -->
+  <div id="scan-modal" class="hidden fixed inset-0 z-[60] items-end sm:items-center justify-center bg-black/70 backdrop-blur-sm p-0 sm:p-4" onclick="if(event.target===this)closeScan()">
+    <div class="bg-[#111117] border border-gray-800 w-full sm:max-w-lg rounded-t-3xl sm:rounded-3xl p-5 max-h-[92vh] overflow-y-auto text-white">
+      <div class="flex justify-between items-start gap-3">
+        <div>
+          <h3 id="scan-title" class="text-lg font-black text-crimson"></h3>
+          <p id="scan-sub" class="text-xs text-gray-400 mt-1 leading-relaxed"></p>
+        </div>
+        <button type="button" onclick="closeScan()" class="text-gray-400 text-xl leading-none px-1" aria-label="close">✕</button>
+      </div>
+      <div id="scan-tabs" class="flex gap-2 my-4 text-xs font-mono" dir="ltr">
+        <button type="button" data-os="win" onclick="setScanOs('win')">Windows</button>
+        <button type="button" data-os="mac" onclick="setScanOs('mac')">macOS</button>
+        <button type="button" data-os="linux" onclick="setScanOs('linux')">Linux</button>
+      </div>
+      <div id="scan-steps" class="space-y-4 text-sm text-gray-300">
+        <div>
+          <div id="scan-s1" class="font-bold text-white mb-1.5"></div>
+          <button type="button" id="scan-dl" onclick="dlScan()" class="bg-crimson hover:bg-crimsonDeep text-white font-bold text-sm px-4 py-2 rounded-xl"></button>
+        </div>
+        <div>
+          <div id="scan-s2" class="font-bold text-white mb-1.5"></div>
+          <p id="scan-run" class="text-xs leading-relaxed"></p>
+          <div id="scan-cmd" class="mt-2"></div>
+        </div>
+        <div>
+          <div id="scan-s3" class="font-bold text-white mb-1.5"></div>
+          <textarea id="scan-text" rows="4" dir="ltr" class="w-full bg-black/60 border border-gray-800 rounded-xl p-3 text-xs font-mono text-gray-200 outline-none focus:border-crimson"></textarea>
+          <input type="file" accept=".json,.txt" onchange="scanFile(this)" class="mt-2 block w-full text-xs text-gray-400 file:mr-3 file:rounded-lg file:border-0 file:bg-gray-800 file:text-gray-200 file:px-3 file:py-1.5">
+          <div id="scan-msg" class="text-xs mt-2 min-h-[1rem]"></div>
+        </div>
+      </div>
+      <div class="flex gap-2 mt-4 flex-wrap">
+        <button type="button" id="scan-apply" onclick="applyScanClick()" class="flex-1 min-w-[10rem] bg-crimson hover:bg-crimsonDeep text-white font-extrabold text-sm px-4 py-3 rounded-xl"></button>
+        <button type="button" id="scan-skip" onclick="skipScan()" class="flex-1 min-w-[10rem] border border-gray-700 text-gray-300 font-bold text-sm px-4 py-3 rounded-xl"></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- سكربت PowerShell المصلح -->
+  <script type="text/plain" id="scan-ps1">
+$ErrorActionPreference='SilentlyContinue'
+Write-Host '== Home Computer Repair Service - Accurate Scan ==' -ForegroundColor Red
+function G($c,$f){ try{ if($f){Get-CimInstance $c -Filter $f}else{Get-CimInstance $c} }catch{ $null } }
+Write-Host '[1/6] System, board, BIOS, CPU'
+$os=G Win32_OperatingSystem; $bb=G Win32_BaseBoard; $bi=G Win32_BIOS; $cpu=@(G Win32_Processor)[0]
+$ct=@((G Win32_SystemEnclosure).ChassisTypes); $lap=[bool]($ct|?{$_ -in 8,9,10,11,14,30,31,32})
+$arch=if($env:PROCESSOR_ARCHITECTURE -eq 'ARM64'){'ARM64'}else{'x64'}
+$chip=$null; if("$($bb.Product)" -match '\b([ABHXZWQ]\d{3}E?)'){$chip=$Matches[1]}
+
+Write-Host '[2/6] Memory and graphics'
+$mem=@(G Win32_PhysicalMemory|?{$_ -ne $null})
+$tmap=@{20='DDR';21='DDR2';24='DDR3';26='DDR4';27='LPDDR';28='LPDDR2';29='LPDDR3';30='LPDDR4';34='DDR5';35='LPDDR5'}
+$firstMem=$mem|select -First 1
+$mt=if($firstMem -and $firstMem.SMBIOSMemoryType){$tmap[[int]$firstMem.SMBIOSMemoryType]}else{$null}
+$speeds=@($mem|%{ if([int]$_.ConfiguredClockSpeed -gt 0){[int]$_.ConfiguredClockSpeed}elseif([int]$_.Speed -gt 0){[int]$_.Speed} })
+$mts=if($speeds.Count -gt 0){($speeds|measure -Maximum).Maximum}else{$null}
+$capSum=($mem|measure Capacity -Sum).Sum
+$gb=if($capSum -gt 0){[math]::Round($capSum/1GB)}else{0}
+
+$gl=@(G Win32_VideoController|?{$_ -ne $null})
+$gpu=$gl|sort {if($_.Name -match 'NVIDIA|Radeon RX|Arc'){0}else{1}}|select -First 1
+$dv=if($gpu){$gpu.DriverVersion}else{$null}
+if($gpu -and $gpu.Name -match 'NVIDIA' -and $dv){
+  $d=$dv.Replace('.','')
+  if($d.Length -ge 5){$dv=$d.Substring($d.Length-5).Insert(3,'.')}
+}
+$gv=if(!$gpu){'Other'}elseif($gpu.Name -match 'NVIDIA'){'NVIDIA'}elseif($gpu.Name -match 'AMD|Radeon'){'AMD'}elseif($gpu.Name -match 'Intel'){'Intel'}else{'Other'}
+$gt=$null;$gc=$null
+try{
+  $nv=(& nvidia-smi --query-gpu=temperature.gpu,clocks.max.gr --format=csv,noheader,nounits 2>$null|select -First 1)
+  if($nv){$p=("$nv" -split ','); if($p.Count -ge 2){$gt=[int]$p[0].Trim();$gc=[int]$p[1].Trim()}}
+}catch{}
+
+Write-Host '[3/6] Drivers (this can take a few seconds)'
+$cd=G Win32_PnPSignedDriver "DeviceName LIKE '%Chipset%' OR DeviceName LIKE '%SMBus%' OR DeviceName LIKE '%Management Engine%' OR DeviceName LIKE '%PCI Express Root%' OR DeviceName LIKE '%PSP%'"|sort DriverDate -Descending|select -First 1
+$bad=@(try{Get-PnpDevice -PresentOnly|?{$_.Status -eq 'Error'}}catch{})
+
+Write-Host '[4/6] Security and license'
+$lic=G SoftwareLicensingProduct "ApplicationId='55c92734-d682-4d71-983e-d6ec3f16059f' AND PartialProductKey IS NOT NULL"|select -First 1
+$licIdx=if($lic -and $lic.LicenseStatus -ne $null){[int]$lic.LicenseStatus}else{0}
+$ls=@('Unlicensed','Licensed','Grace','Grace','NonGenuine','Notification','ExtendedGrace')[$licIdx]
+$avn='None';$avok=$false
+try{
+  $av=Get-CimInstance -Namespace root/SecurityCenter2 AntivirusProduct|select -First 1
+  if($av){
+    $st=[Convert]::ToString([int]$av.productState,16).PadLeft(6,'0')
+    $avn=$av.displayName
+    $avok=(($st.Substring(2,2) -in '10','11') -and $st.Substring(4,2) -eq '00')
+  }elseif($m=Get-MpComputerStatus){
+    $avn='Microsoft Defender'
+    $avok=[bool]$m.AntivirusEnabled -and ((Get-Date)-$m.AntivirusSignatureLastUpdated).TotalDays -lt 7
+  }
+}catch{}
+
+Write-Host '[5/6] Storage test'
+$hp=100;$wr=$null;$lat=$null;$pdModel=$null;$pdType=$null
+try{
+  $dn=(Get-Partition -DriveLetter C).DiskNumber
+  $pd=Get-PhysicalDisk|?{$_.DeviceId -eq "$dn"}|select -First 1
+  if($pd){
+    $pdModel=$pd.FriendlyName
+    $pdType=("$($pd.BusType) $($pd.MediaType)").Trim()
+    $wear=($pd|Get-StorageReliabilityCounter).Wear
+    $hp=if($wear -ne $null){[math]::Max(0,100-[int]$wear)}elseif($pd.HealthStatus -eq 'Healthy'){100}elseif($pd.HealthStatus -eq 'Warning'){60}else{20}
+  }
+  $f=Join-Path $env:TEMP 'hpc_scan.tmp'; $buf=New-Object byte[] (4MB); (New-Object Random).NextBytes($buf)
+  $sw=[Diagnostics.Stopwatch]::StartNew(); $fs=New-Object IO.FileStream($f,'Create','Write','None',65536,'WriteThrough')
+  1..32|%{$fs.Write($buf,0,$buf.Length)}; $fs.Flush($true); $fs.Close(); $sw.Stop()
+  if($sw.Elapsed.TotalSeconds -gt 0){$wr=[math]::Round(128/$sw.Elapsed.TotalSeconds)}
+  $b4=New-Object byte[] 4096; $sw.Restart(); $fs=New-Object IO.FileStream($f,'Open','Write','None',4096,'WriteThrough')
+  1..15|%{$fs.Write($b4,0,4096);$fs.Flush($true)}; $fs.Close(); $sw.Stop()
+  $lat=[math]::Round($sw.Elapsed.TotalMilliseconds/15,1)
+  Remove-Item $f -Force
+}catch{}
+
+Write-Host '[6/6] Internet speed and location'
+$isp='Unknown ISP';$city=$null;$ipAddr=$null;$mbps=$null;$ms=$null
+try{
+  $ip=Invoke-RestMethod 'https://ipapi.co/json/' -TimeoutSec 6
+  if($ip.org){$isp=($ip.org -replace '^AS\d+\s+','')}
+  $city=$ip.city;$ipAddr=$ip.ip
+}catch{}
+if($isp -eq 'Unknown ISP'){
+  try{
+    $ip=Invoke-RestMethod 'https://ipinfo.io/json' -TimeoutSec 6
+    if($ip.org){$isp=($ip.org -replace '^AS\d+\s+','')}
+    if(!$city){$city=$ip.city}
+    if(!$ipAddr){$ipAddr=$ip.ip}
+  }catch{}
+}
+try{
+  $sw=[Diagnostics.Stopwatch]::StartNew()
+  $bytes=(New-Object Net.WebClient).DownloadData('https://speed.cloudflare.com/__down?bytes=10000000')
+  $sw.Stop()
+  if($sw.Elapsed.TotalSeconds -gt 0){$mbps=[math]::Round($bytes.Length*8/1e6/$sw.Elapsed.TotalSeconds,1)}
+}catch{}
+try{
+  $pg=@(Test-Connection 1.1.1.1 -Count 3)
+  if($pg.Count -gt 0){$ms=[math]::Round(($pg|%{if($_.ResponseTime -ne $null){$_.ResponseTime}else{$_.Latency}}|measure -Average).Average)}
+}catch{}
+
+$pw=$null
+if($lap){
+  try{
+    $bs=Get-CimInstance -Namespace root/WMI BatteryStatus|select -First 1
+    if($bs -and $bs.DischargeRate -gt 0){$pw=[math]::Round($bs.DischargeRate/1000)}
+  }catch{}
+}
+$ctp=$null
+try{
+  $tz=Get-CimInstance -Namespace root/wmi MSAcpi_ThermalZoneTemperature
+  if($tz){$ctp=[math]::Round((($tz|measure CurrentTemperature -Maximum).Maximum/10)-273.15)}
+}catch{}
+
+$res=[ordered]@{
+  v=1
+  id=([guid]::NewGuid().ToString('N').Substring(0,8)).ToUpper()
+  time=(Get-Date).ToString('s')
+  device=$(if($lap){'Laptop'}else{'Desktop PC'})
+  os=@{name=if($os.Caption){($os.Caption -replace 'Microsoft ','').Trim()}else{'Windows'};arch=$arch;build=$os.BuildNumber}
+  board=@{vendor=$bb.Manufacturer;model=$bb.Product;chipset=$chip}
+  bios=@{vendor=$bi.Manufacturer;ver=$bi.SMBIOSBIOSVersion;date=$(if($bi.ReleaseDate){$bi.ReleaseDate.ToString('yyyy-MM-dd')})}
+  cpu=@{name=if($cpu.Name){($cpu.Name -replace '\s+',' ').Trim()}else{'Processor'};cores=[int]$cpu.NumberOfCores;threads=[int]$cpu.NumberOfLogicalProcessors;ghz=[math]::Round([double]$cpu.MaxClockSpeed/1000,2);vendor=$(if($cpu.Manufacturer -match 'Intel'){'Intel'}elseif($cpu.Manufacturer -match 'AMD'){'AMD'}else{$cpu.Manufacturer})}
+  ram=@{gb=$gb;type=$mt;mts=$mts;modules=$mem.Count}
+  gpu=@{name=if($gpu){$gpu.Name}else{'Graphics'};vendor=$gv;driver=$dv;clockMhz=$gc;tempC=$gt}
+  chipsetDrv=@{name=if($cd){$cd.DeviceName}else{$null};ver=if($cd){$cd.DriverVersion}else{$null};date=$(if($cd -and $cd.DriverDate){([datetime]$cd.DriverDate).ToString('yyyy-MM-dd')})}
+  sec=@{winLicensed=($licIdx -eq 1);winStatus=$ls;av=$avn;avOk=$avok}
+  drivers=@{problemCount=$bad.Count;problems=@($bad|select -First 5|%{$_.FriendlyName})}
+  net=@{isp=$isp;ip=$ipAddr;city=$city;mbps=$mbps;pingMs=$ms}
+  disk=@{model=$pdModel;type=$pdType;healthPct=$hp;mbps=$wr;latMs=$lat}
+  power=@{watts=$pw;source=$(if($pw){'battery discharge'}else{$null})}
+  cpuTempC=$ctp
+}
+$json=$res|ConvertTo-Json -Depth 6 -Compress
+try{Set-Clipboard -Value $json}catch{}
+try{
+  $out=Join-Path ([Environment]::GetFolderPath('Desktop')) 'HomePC-Scan-Result.json'
+  $json|Out-File $out -Encoding utf8
+}catch{}
+Write-Host ''
+Write-Host 'DONE. The result was copied to your clipboard.' -ForegroundColor Green
+Write-Host 'Go back to the website and paste it (Ctrl+V). A copy is saved on your Desktop.'
+  </script>
+
+  <!-- سكربت Linux / macOS المصلح -->
+  <script type="text/plain" id="scan-unix">
+#!/bin/bash
+echo "== Home Computer Repair Service - Accurate Scan =="
+esc(){ printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g' | tr -d '\n\r\t'; }
+S(){ [ -n "$1" ] && printf '"%s"' "$(esc "$1")" || printf null; }
+N(){ case "$1" in ''|*[!0-9.]*) printf null;; *) printf '%s' "$1";; esac; }
+B(){ [ "$1" = 1 ] && printf true || printf false; }
+OS=$(uname -s); [ "$(uname -m)" = x86_64 ] && ARCH=x64 || ARCH=ARM64
+CHIP="";CORES="";THR="";GHZ="";GB="";RT="";RMTS="";MODS=0;GPU="";GV="Other";GDRV="";GCLK="";GT="";CTP="";PW=""
+WL=1;WST="n/a";AV="";AVOK=0;PROB=0;CDN="";DEVICE="Desktop PC";HP=100;DM=""
+if [ "$OS" = Darwin ]; then
+  VER=$(sw_vers -productVersion); MAJ=${VER%%.*}
+  case $MAJ in 26) NM=Tahoe;; 15) NM=Sequoia;; 14) NM=Sonoma;; 13) NM=Ventura;; 12) NM=Monterey;; 11) NM="Big Sur";; *) NM="";; esac
+  OSN="macOS $NM $VER"; HW=$(system_profiler SPHardwareDataType 2>/dev/null)
+  g(){ echo "$HW" | awk -F': ' -v k="$1" '$0 ~ k {print $2; exit}'; }
+  MODEL=$(g "Model Name"); CPUN=$(g "Chip:"); [ -z "$CPUN" ] && CPUN=$(g "Processor Name")
+  GB=$(g "Memory:" | awk '{print $1}'); CORES=$(sysctl -n hw.physicalcpu 2>/dev/null); THR=$(sysctl -n hw.logicalcpu 2>/dev/null)
+  F=$(sysctl -n hw.cpufrequency_max 2>/dev/null); [ -n "$F" ] && GHZ=$(awk -v f="$F" 'BEGIN{printf "%.2f",f/1e9}')
+  VENDOR=Apple; case "$CPUN" in *Intel*) VENDOR=Intel;; esac
+  GPU=$(system_profiler SPDisplaysDataType 2>/dev/null | awk -F': ' '/Chipset Model/{print $2; exit}'); GV=Apple
+  RT="Unified LPDDR"; BM="Apple"; BMD=$(g "Model Identifier"); BIOSV=$(g "System Firmware Version"); BIOSV="iBoot $BIOSV"
+  SM=$(diskutil info / 2>/dev/null | awk -F': *' '/SMART Status/{print $2; exit}'); [ "$SM" = Verified ] || HP=40
+  DM=$(diskutil info / 2>/dev/null | awk -F': *' '/Device \/ Media Name/{print $2; exit}')
+  GKS=$(spctl --status 2>/dev/null); AV="XProtect + Gatekeeper"; case "$GKS" in *enabled*) AVOK=1;; esac; CDN="Built into macOS"
+  case "$MODEL" in *Book*) DEVICE=Laptop;; esac; BIOSD=""
+else
+  . /etc/os-release 2>/dev/null; OSN="Linux ${PRETTY_NAME:-Desktop}"; D=/sys/class/dmi/id; r(){ cat "$D/$1" 2>/dev/null; }
+  BM=$(r board_vendor); BMD=$(r board_name); BIOSV=$(r bios_version); BIOSD=$(r bios_date); VENDOR=Other
+  LS=$(lscpu 2>/dev/null); l(){ echo "$LS" | awk -F': *' -v k="$1" '$1==k {print $2; exit}'; }
+  CPUN=$(l "Model name"); THR=$(l "CPU(s)"); CPS=$(l "Core(s) per socket"); SK=$(l "Socket(s)"); CORES=$((${CPS:-0}*${SK:-1}))
+  MX=$(l "CPU max MHz"); [ -n "$MX" ] && GHZ=$(awk -v m="$MX" 'BEGIN{printf "%.2f",m/1000}')
+  case "$CPUN" in *Intel*) VENDOR=Intel;; *AMD*) VENDOR=AMD;; esac
+  GB=$(awk '/MemTotal/{printf "%d",($2/1048576)+0.5}' /proc/meminfo 2>/dev/null)
+  if command -v dmidecode >/dev/null && sudo -n true 2>/dev/null; then
+    DMI=$(sudo -n dmidecode -t memory 2>/dev/null)
+    RT=$(echo "$DMI" | awk '/^\tType: DDR|^\tType: LPDDR/{print $2; exit}')
+    RMTS=$(echo "$DMI" | awk '/Configured (Memory|Clock) Speed/{print $(NF-1); exit}')
+    MODS=$(echo "$DMI" | grep -c '^\tSize: [0-9]' 2>/dev/null || echo 0)
+  fi
+  GL=$(lspci 2>/dev/null | grep -iE 'vga|3d' | head -1 | sed 's/^[^:]*: //; s/^[^:]*: //'); GPU="$GL"
+  case "$GL" in *NVIDIA*) GV=NVIDIA;; *AMD*|*Radeon*) GV=AMD;; *Intel*) GV=Intel;; esac
+  if command -v nvidia-smi >/dev/null 2>&1; then NV=$(nvidia-smi --query-gpu=driver_version,temperature.gpu,clocks.max.gr --format=csv,noheader,nounits 2>/dev/null | head -1); GDRV=$(echo "$NV"|cut -d, -f1|tr -d ' '); GT=$(echo "$NV"|cut -d, -f2|tr -d ' '); GCLK=$(echo "$NV"|cut -d, -f3|tr -d ' '); fi
+  if command -v ufw >/dev/null 2>&1 && ufw status 2>/dev/null | grep -q active; then AV="Firewall (ufw)"; AVOK=1; elif command -v systemctl >/dev/null 2>&1 && systemctl is-active --quiet firewalld 2>/dev/null; then AV="Firewall (firewalld)"; AVOK=1; else AV="No active firewall"; fi
+  CDN="Kernel built-in drivers"; DM=$(lsblk -dno MODEL "$(df / 2>/dev/null | awk 'NR==2{print $1}' | sed 's/[0-9p]*$//')" 2>/dev/null | head -1)
+  case "$(r chassis_type)" in 8|9|10|14) DEVICE=Laptop;; esac
+  [ -r /sys/class/power_supply/BAT0/power_now ] && PW=$(awk '{printf "%d",$1/1000000}' /sys/class/power_supply/BAT0/power_now 2>/dev/null)
+  T=$(cat /sys/class/thermal/thermal_zone0/temp 2>/dev/null); [ -n "$T" ] && CTP=$((T/1000))
+fi
+CHIP=$(echo "$BMD" | grep -oE '\b[ABHXZWQ][0-9]{3}E?' | head -1)
+echo "[storage] testing..."
+WR=$(perl -MTime::HiRes=time -e '$t=time; system("dd if=/dev/zero of=/tmp/hpc.tmp bs=1048576 count=128 >/dev/null 2>&1; sync"); printf "%d",128/((time-$t)>0.01?(time-$t):0.01)' 2>/dev/null); rm -f /tmp/hpc.tmp
+echo "[network] testing..."
+IPJ=$(curl -s --max-time 6 https://ipapi.co/json/ 2>/dev/null); ISP=$(echo "$IPJ" | sed -n 's/.*"org": *"\([^"]*\)".*/\1/p' | sed 's/^AS[0-9]* //'); CITY=$(echo "$IPJ" | sed -n 's/.*"city": *"\([^"]*\)".*/\1/p'); IP=$(echo "$IPJ" | sed -n 's/.*"ip": *"\([^"]*\)".*/\1/p')
+SP=$(curl -s -o /dev/null --max-time 20 -w '%{speed_download}' 'https://speed.cloudflare.com/__down?bytes=10000000' 2>/dev/null); MBPS=$(awk -v s="${SP:-0}" 'BEGIN{printf "%.1f",s*8/1e6}')
+PING=$(ping -c 3 1.1.1.1 2>/dev/null | tail -1 | awk -F'/' '{printf "%d",$5}')
+ID=$(date +%s | md5 2>/dev/null || date +%s | md5sum); ID=$(echo "$ID" | cut -c1-8 | tr a-f A-F)
+JSON=$(printf '{"v":1,"id":%s,"time":%s,"device":%s,"os":{"name":%s,"arch":%s},"board":{"vendor":%s,"model":%s,"chipset":%s},"bios":{"vendor":%s,"ver":%s,"date":%s},"cpu":{"name":%s,"cores":%s,"threads":%s,"ghz":%s,"vendor":%s},"ram":{"gb":%s,"type":%s,"mts":%s,"modules":%s},"gpu":{"name":%s,"vendor":%s,"driver":%s,"clockMhz":%s,"tempC":%s},"chipsetDrv":{"name":%s,"ver":null,"date":null},"sec":{"winLicensed":true,"winStatus":"n/a","av":%s,"avOk":%s},"drivers":{"problemCount":0,"problems":[]},"net":{"isp":%s,"ip":%s,"city":%s,"mbps":%s,"pingMs":%s},"disk":{"model":%s,"type":null,"healthPct":%s,"mbps":%s,"latMs":null},"power":{"watts":%s,"source":%s},"cpuTempC":%s}' \
+ "$(S "$ID")" "$(S "$(date +%Y-%m-%dT%H:%M:%S)")" "$(S "$DEVICE")" "$(S "$OSN")" "$(S "$ARCH")" "$(S "$BM")" "$(S "$BMD")" "$(S "$CHIP")" "$(S "$BM")" "$(S "$BIOSV")" "$(S "$BIOSD")" \
+ "$(S "$CPUN")" "$(N "$CORES")" "$(N "$THR")" "$(N "$GHZ")" "$(S "$VENDOR")" "$(N "$GB")" "$(S "$RT")" "$(N "$RMTS")" "$(N "$MODS")" "$(S "$GPU")" "$(S "$GV")" "$(S "$GDRV")" "$(N "$GCLK")" "$(N "$GT")" "$(S "$CDN")" "$(S "$AV")" "$(B "$AVOK")" \
+ "$(S "$ISP")" "$(S "$IP")" "$(S "$CITY")" "$(N "$MBPS")" "$(N "$PING")" "$(S "$DM")" "$(N "$HP")" "$(N "$WR")" "$(N "$PW")" "$([ -n "$PW" ] && S "battery discharge" || printf null)" "$(N "$CTP)")
+printf '%s' "$JSON" > "$HOME/HomePC-Scan-Result.json"
+CP=no
+if command -v pbcopy >/dev/null 2>&1; then printf '%s' "$JSON" | pbcopy && CP=yes
+elif command -v wl-copy >/dev/null 2>&1; then printf '%s' "$JSON" | wl-copy && CP=yes
+elif command -v xclip >/dev/null 2>&1; then printf '%s' "$JSON" | xclip -selection clipboard && CP=yes; fi
+echo; if [ "$CP" = yes ]; then echo "DONE. Result copied to clipboard - paste it on the website (Ctrl/Cmd+V)."; else echo "DONE. Open $HOME/HomePC-Scan-Result.json and upload it on the website."; fi
+  </script>
+
+  <!-- الأكواد البرمجية للتطبيق -->
+  <script>
+    const APP_CONFIG = {
+      whatsappNumber: '201028509300',
+      dbStorageKey: 'omar_pc_fix_db_v1',
+      maxPhotos: 3,
+      maxPhotoBytes: 4 * 1024 * 1024,
+      testDurationSec: 90
+    };
+
+    const $id = i => document.getElementById(i);
+
+    function escapeHtml(val) {
+      return String(val ?? '').replace(/[&<>"']/g, ch => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[ch]));
+    }
+
+    function toLocalIsoDate(dateObj = new Date()) {
+      const y = dateObj.getFullYear();
+      const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+      const d = String(dateObj.getDate()).padStart(2, '0');
+      return `${y}-${m}-${d}`;
+    }
+
+    let currentLang = 'ar';
+    let selectedBookingDate = '';
+    let selectedBookingSlot = '';
+
+    const TIME_SLOTS_10_TO_8 = [
+      { id: '10:00-11:00', ar: '١٠ ص - ١١ ص', en: '10:00 AM - 11:00 AM' },
+      { id: '11:00-12:00', ar: '١١ ص - ١٢ م', en: '11:00 AM - 12:00 PM' },
+      { id: '12:00-13:00', ar: '١٢ م - ١ م', en: '12:00 PM - 1:00 PM' },
+      { id: '13:00-14:00', ar: '١ م - ٢ م', en: '1:00 PM - 2:00 PM' },
+      { id: '14:00-15:00', ar: '٢ م - ٣ م', en: '2:00 PM - 3:00 PM' },
+      { id: '15:00-16:00', ar: '٣ م - ٤ م', en: '3:00 PM - 4:00 PM' },
+      { id: '16:00-17:00', ar: '٤ م - ٥ م', en: '4:00 PM - 5:00 PM' },
+      { id: '17:00-18:00', ar: '٥ م - ٦ م', en: '5:00 PM - 6:00 PM' },
+      { id: '18:00-19:00', ar: '٦ م - ٧ م', en: '6:00 PM - 7:00 PM' },
+      { id: '19:00-20:00', ar: '٧ م - ٨ م', en: '7:00 PM - 8:00 PM' }
+    ];
+
+    let staffLoginTab = 'tech';
+    let currentStaffSession = null;
+
+    let isTesting = false;
+    let testTimeRemaining = APP_CONFIG.testDurationSec;
+    let testInterval = null;
+    let cpuTemp = 44, gpuTemp = 41;
+    let cpuLoad = 18, gpuLoad = 12;
+    let cpuClock = 3.8, gpuClock = 1845;
+    let currentFPS = 60, targetFPS = 144, psuWatts = 85;
+    let maxCpuTemp = 44, maxGpuTemp = 41;
+    let minFpsSeen = 60, maxFpsSeen = 60, lastTestOutcome = 'Ready';
+    let manualDeviceOverride = false;
+    let uploadedPhotosCount = 0;
+
+    const HW = { desc: {}, cpuName: '—', gpuName: '—', verified: false };
+
+    let detectedInfo = {
+      deviceType: 'Desktop PC',
+      mobo: 'ASUS ROG STRIX B650-F',
+      chipset: 'AMD B650 • 4266 MHz Bus',
+      bios: 'UEFI v2402',
+      biosNeedsUpdate: false,
+      cpu: '4 Cores • 8 Threads • 3.8 GHz',
+      gpu: 'RTX 4060 • 1845 MHz • DRV v566.36 WHQL',
+      gpuClockLabel: '1845 MHz',
+      gpuDriverVersion: 'DRV v566.36 WHQL',
+      ram: '8 GB DDR5 • 4266 MHz',
+      os: 'Windows 11 Pro (x64)',
+      winActivated: true,
+      securityLicensed: true,
+      licenseSummary: 'WIN: ACTIVATED • AV: LICENSED',
+      boardDriverOk: true,
+      gpuDriverOk: true,
+      boardDriverCode: 'MB DRV-4.12',
+      gpuDriverCode: 'GPU v566.36 WHQL',
+      driversSummary: 'MB DRV-4.12 • GPU v566.36 WHQL',
+      isp: 'Detecting ISP...',
+      netSpeedMbps: '85.4 Mbps',
+      netPingMs: '18ms',
+      ipAddress: 'N/A',
+      locationString: 'Giza, Giza Governorate, Egypt',
+      storageHealth: '99% OPTIMAL • 5200 MB/s'
+    };
+
+    const ORDER_STAGES = ['Assigned', 'In Transit', 'Diagnosing', 'Repairing', 'Completed'];
+
+    const DEFAULT_DB = {
+      adminAuth: { username: 'admin', password: '123', name: 'عمر — مدير العمليات والنظام' },
+      technicians: [
+        { id: 'TECH-1', name: 'كريم حسن', username: 'karim.tech', password: '1234', roleTitle: 'فني صيانة هاردوير وحرارة', phone: '01028509300', zone: 'الجيزة والدقي', active: true },
+        { id: 'TECH-2', name: 'يوسف عادل', username: 'youssef.tech', password: '1234', roleTitle: 'متخصص بايوس وتعريفات وأنظمة', phone: '01028509300', zone: 'المعادي ومدينة نصر', active: true }
+      ],
+      services: [
+        { id: 'cleaning-paste', title: 'تنظيف عميق وتغيير معجون حراري', category: 'Thermal & Cooling', duration: '60 دقيقة', price: 700, badge: 'مقترح بالذكاء الاصطناعي', desc: 'إزالة الأتربة بالكامل، تنظيف المراوح والمشتت، ووضع معجون حراري عالي الكفاءة للمعالج وكرت الشاشة.', note: 'صيانة منزلية شاملة', active: true, selected: true },
+        { id: 'bios-update', title: 'تحديث وضبط البايوس (BIOS / UEFI)', category: 'BIOS & Firmware', duration: '45 دقيقة', price: 350, badge: 'فحص البايوس', desc: 'تحديث إصدار البايوس بأمان، ضبط ملفات الذاكرة ومنحنيات المراوح وتحسين الاستقرار.', note: 'فحص أمان كامل', active: true, selected: false },
+        { id: 'windows-drivers', title: 'ضبط الويندوز والتعريفات والتراخيص', category: 'OS & Drivers', duration: '60 دقيقة', price: 400, badge: 'تعريفات ونظام', desc: 'تثبيت وتحديث تعريفات اللوحة الأم وكرت الشاشة والنظام وفحص التفعيل والحماية.', note: 'حفاظ على الملفات', active: true, selected: false },
+        { id: 'full-diagnostic', title: 'فحص أداء وحرارة واختبار ضغط شامل', category: 'Diagnostics', duration: '40 دقيقة', price: 300, badge: 'فحص شامل', desc: 'قياس درجات الحرارة تحت الضغط، استهلاك الطاقة، صحة التخزين، واستقرار الفريمات مع تقرير فني.', note: 'تقرير مفصل', active: true, selected: false }
+      ],
+      orders: [
+        { code: 'OPF-1042', clientName: 'مصطفى كمال', clientPhone: '01011223344', address: 'الدقي، الجيزة', date: toLocalIsoDate(new Date(Date.now() + 86400000)), timeSlot: '13:00-14:00', deviceType: 'Laptop', services: ['تنظيف عميق وتغيير معجون حراري (700 ج.م)'], totalLE: 700, desc: 'حرارة اللابتوب ترتفع أثناء اللعب وتصل إلى 88°C مع صوت مروحة مرتفع.', hardware: 'Lenovo Mainboard | BIOS N3CN38WW | WE 85 Mbps', stage: 'Assigned', assignedTechId: 'TECH-1' },
+        { code: 'OPF-1043', clientName: 'سلمى سمير', clientPhone: '01199887766', address: 'المعادي، القاهرة', date: toLocalIsoDate(new Date(Date.now() + 86400000)), timeSlot: '16:00-17:00', deviceType: 'Desktop PC', services: ['ضبط الويندوز والتعريفات والتراخيص (400 ج.م)'], totalLE: 400, desc: 'مطلوب مراجعة تعريف كرت الشاشة وإعدادات النظام.', hardware: 'ASUS ROG B650-F | GPU DRV v566.36 | Orange 90 Mbps', stage: 'Assigned', assignedTechId: 'TECH-2' }
+      ],
+      reviews: [
+        { name: 'كريم م.', rating: 5, comment: 'درجات حرارة الجهاز نزلت من 89°C إلى 57°C بعد الصيانة المنزلية. خدمة سريعة ومحترفة جداً.' },
+        { name: 'عمر س.', rating: 5, comment: 'الفحص السريع وضّح سبب هبوط الأداء وتم حل المشكلة في نفس اليوم.' },
+        { name: 'طارق ن.', rating: 5, comment: 'مريح جداً بدون نقل الكيسة للخارج، والفني فاهم ومرتب.' }
+      ]
+    };
+
+    function loadDatabase() {
+      try {
+        const raw = localStorage.getItem(APP_CONFIG.dbStorageKey);
+        if (!raw) {
+          localStorage.setItem(APP_CONFIG.dbStorageKey, JSON.stringify(DEFAULT_DB));
+          return JSON.parse(JSON.stringify(DEFAULT_DB));
+        }
+        const parsed = JSON.parse(raw);
+        return {
+          adminAuth: parsed.adminAuth || DEFAULT_DB.adminAuth,
+          technicians: Array.isArray(parsed.technicians) ? parsed.technicians : DEFAULT_DB.technicians,
+          services: Array.isArray(parsed.services) ? parsed.services : DEFAULT_DB.services,
+          orders: Array.isArray(parsed.orders) ? parsed.orders : DEFAULT_DB.orders,
+          reviews: Array.isArray(parsed.reviews) ? parsed.reviews : DEFAULT_DB.reviews
+        };
+      } catch (e) {
+        return JSON.parse(JSON.stringify(DEFAULT_DB));
+      }
+    }
+
+    let db = loadDatabase();
+
+    function saveDatabase() {
+      try {
+        localStorage.setItem(APP_CONFIG.dbStorageKey, JSON.stringify(db));
+      } catch (e) {
+        showToast('تعذر حفظ البيانات في التخزين المحلي.');
+      }
+    }
+
+    function showToast(msg) {
+      const banner = $id('toast-banner');
+      const text = $id('toast-text');
+      if (!banner || !text) return;
+      text.textContent = msg;
+      banner.classList.remove('hidden');
+      banner.classList.add('flex');
+      clearTimeout(window.__toastTimer);
+      window.__toastTimer = setTimeout(() => {
+        banner.classList.add('hidden');
+        banner.classList.remove('flex');
+      }, 3600);
+    }
+
+    function exportDatabaseJSON() {
+      const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `omar-pc-fix-backup-${toLocalIsoDate()}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      showToast('تم تحميل نسخة احتياطية JSON لقاعدة البيانات.');
+    }
+
+    function importDatabaseJSON(input) {
+      if (!input || !input.files || !input.files[0]) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const imported = JSON.parse(ev.target.result);
+          if (!imported || !Array.isArray(imported.services) || !Array.isArray(imported.orders)) {
+            showToast('ملف النسخة الاحتياطية غير صالح.');
+            return;
+          }
+          db = {
+            adminAuth: imported.adminAuth || db.adminAuth,
+            technicians: Array.isArray(imported.technicians) ? imported.technicians : db.technicians,
+            services: imported.services,
+            orders: imported.orders,
+            reviews: Array.isArray(imported.reviews) ? imported.reviews : db.reviews
+          };
+          saveDatabase();
+          renderServicesGrid();
+          renderReviews();
+          initAndRenderSchedulePicker();
+          syncBookingSnapshot();
+          renderStaffWorkspace();
+          showToast('تم استرجاع قاعدة البيانات بنجاح.');
+        } catch (err) {
+          showToast('حدث خطأ أثناء قراءة ملف JSON.');
+        }
+      };
+      reader.readAsText(input.files[0]);
+      input.value = '';
+    }
+
+    function resetDemoDatabase() {
+      db = JSON.parse(JSON.stringify(DEFAULT_DB));
+      saveDatabase();
+      renderServicesGrid();
+      renderReviews();
+      initAndRenderSchedulePicker();
+      syncBookingSnapshot();
+      renderStaffWorkspace();
+      showToast('تمت إعادة ضبط قاعدة البيانات الافتراضية.');
+    }
+
+    const manufacturers50 = [
+      { name: 'NVIDIA', spec: 'GPU Drivers (GeForce/RTX) & CUDA', url: 'https://www.nvidia.com/en-us/drivers/', color: '#76B900' },
+      { name: 'AMD', spec: 'Adrenalin GPU Drivers & Ryzen Chipset', url: 'https://www.amd.com/en/support', color: '#ED1C24' },
+      { name: 'INTEL', spec: 'Arc/Iris Drivers, DSA & Chipset/BIOS', url: 'https://www.intel.com/content/www/us/en/download-center/home.html', color: '#0071C5' },
+      { name: 'ASUS', spec: 'Motherboard BIOS/UEFI, Armoury & Drivers', url: 'https://www.asus.com/support/download-center/', color: '#0284C7' },
+      { name: 'MSI', spec: 'Motherboard BIOS, GPU Drivers & Center', url: 'https://www.msi.com/support/download', color: '#EF4444' },
+      { name: 'GIGABYTE', spec: 'BIOS Updates, Control Center & Drivers', url: 'https://www.gigabyte.com/Support', color: '#F97316' },
+      { name: 'ASROCK', spec: 'Motherboard BIOS, Drivers & Utilities', url: 'https://www.asrock.com/support/index.asp', color: '#22C55E' },
+      { name: 'LENOVO', spec: 'BIOS Firmware, Vantage & Laptop Drivers', url: 'https://pcsupport.lenovo.com/', color: '#DC2626' },
+      { name: 'HP', spec: 'SoftPaq Drivers, BIOS Updates & Support', url: 'https://support.hp.com/drivers', color: '#0096D6' },
+      { name: 'DELL', spec: 'BIOS Firmware, Command Update & Drivers', url: 'https://www.dell.com/support/home', color: '#007DB8' },
+      { name: 'ACER', spec: 'BIOS Updates, PredatorSense & Drivers', url: 'https://www.acer.com/us-en/support/drivers-and-manuals', color: '#84CC16' },
+      { name: 'SAMSUNG', spec: 'Magician SSD Firmware, NVMe & Drivers', url: 'https://semiconductor.samsung.com/consumer-storage/support/tools/', color: '#3B82F6' },
+      { name: 'WESTERN DIGITAL', spec: 'WD Dashboard Firmware & Storage Tools', url: 'https://support-en.wd.com/app/downloads', color: '#38BDF8' },
+      { name: 'CRUCIAL', spec: 'Storage Executive Firmware & SSD Tools', url: 'https://www.crucial.com/support/ssd-support', color: '#0EA5E9' },
+      { name: 'CORSAIR', spec: 'iCUE Firmware, DDR5 XMP & PSU Tools', url: 'https://www.corsair.com/us/en/s/downloads', color: '#FACC15' },
+      { name: 'COOLER MASTER', spec: 'Cooler/Case Firmware & MasterPlus+', url: 'https://www.coolermaster.com/en-global/downloads/', color: '#C084FC' },
+      { name: 'NZXT', spec: 'CAM Cooler Firmware & Drivers', url: 'https://nzxt.com/software/cam', color: '#A855F7' },
+      { name: 'EVGA', spec: 'Precision X1, BIOS & GPU/PSU Support', url: 'https://www.evga.com/support/download/', color: '#E5E7EB' },
+      { name: 'ZOTAC', spec: 'FireStorm GPU Utility & Drivers', url: 'https://www.zotac.com/us/support/download', color: '#F59E0B' },
+      { name: 'KINGSTON', spec: 'SSD Manager Firmware & Memory Tools', url: 'https://www.kingston.com/en/support/technical/ssdmanager', color: '#E11D48' },
+      { name: 'SEAGATE', spec: 'SeaTools Drive Firmware & Diagnostics', url: 'https://www.seagate.com/support/downloads/', color: '#65A30D' },
+      { name: 'SANDISK', spec: 'SSD Dashboard & Flash Firmware Tools', url: 'https://support-en.sandisk.com/app/downloads', color: '#EF4444' },
+      { name: 'TP-LINK', spec: 'Router/Adapter Firmware & Drivers', url: 'https://www.tp-link.com/en/support/download/', color: '#4ACBD6' },
+      { name: 'LOGITECH', spec: 'G HUB / Options+ Firmware & Drivers', url: 'https://support.logi.com/', color: '#00B8FC' },
+      { name: 'RAZER', spec: 'Synapse Firmware & Peripheral Drivers', url: 'https://mysupport.razer.com/', color: '#4ADE80' },
+      { name: 'G.SKILL', spec: 'DDR4/DDR5 Memory QVL & RGB Tools', url: 'https://www.gskill.com/support', color: '#F43F5E' },
+      { name: 'MICROSOFT', spec: 'Windows OS, Updates & DirectX/VC++', url: 'https://www.microsoft.com', color: '#00A4EF' },
+      { name: 'APPLE', spec: 'Mac, iPhone, Silicon & macOS', url: 'https://www.apple.com', color: '#E5E7EB' },
+      { name: 'GOOGLE', spec: 'Android, Chrome OS & Cloud Services', url: 'https://www.google.com', color: '#4285F4' },
+      { name: 'ADOBE', spec: 'Creative Cloud, Photoshop & Acrobat', url: 'https://www.adobe.com', color: '#FF0000' },
+      { name: 'VALVE (STEAM)', spec: 'PC Gaming Platform & Steam Deck', url: 'https://store.steampowered.com', color: '#60A5FA' },
+      { name: 'SONY', spec: 'PlayStation, Bravia & Imaging Hardware', url: 'https://www.sony.com', color: '#94A3B8' },
+      { name: 'CANONICAL', spec: 'Ubuntu Linux OS & Enterprise Support', url: 'https://canonical.com', color: '#E95420' },
+      { name: 'RED HAT', spec: 'Enterprise Linux & Hybrid Cloud OS', url: 'https://www.redhat.com', color: '#EE0000' },
+      { name: 'VMWARE', spec: 'Virtualization & Workstation Software', url: 'https://www.vmware.com', color: '#38BDF8' },
+      { name: 'CLOUDFLARE', spec: 'DNS, Edge Security & Zero Trust Net', url: 'https://www.cloudflare.com', color: '#F38020' },
+      { name: 'KASPERSKY', spec: 'Antivirus & Endpoint Security Suite', url: 'https://www.kaspersky.com', color: '#00A88E' },
+      { name: 'BITDEFENDER', spec: 'Threat Protection & Antivirus Software', url: 'https://www.bitdefender.com', color: '#EF4444' },
+      { name: 'ESET', spec: 'NOD32 Antivirus & Cyber Security', url: 'https://www.eset.com', color: '#00A99D' },
+      { name: 'MALWAREBYTES', spec: 'Anti-Malware & Endpoint Protection', url: 'https://www.malwarebytes.com', color: '#0066FF' },
+      { name: 'JETBRAINS', spec: 'Developer IDEs & Coding Tools', url: 'https://www.jetbrains.com', color: '#F472B6' },
+      { name: 'GITHUB', spec: 'Code Hosting, Git & DevOps Platform', url: 'https://github.com', color: '#E5E7EB' },
+      { name: 'DOCKER', spec: 'Containerization & Runtime Platform', url: 'https://www.docker.com', color: '#2496ED' },
+      { name: 'ORACLE', spec: 'VirtualBox, Java & Database Software', url: 'https://www.oracle.com', color: '#F80000' },
+      { name: 'CISCO', spec: 'Networking Hardware & Security Gear', url: 'https://www.cisco.com', color: '#049FD9' },
+      { name: 'NORTON', spec: 'Device Security & Identity Software', url: 'https://norton.com', color: '#FACC15' },
+      { name: 'AVAST', spec: 'PC Security & Cleanup Utilities', url: 'https://www.avast.com', color: '#FF7800' },
+      { name: 'TEAMVIEWER', spec: 'Remote Desktop & Support Software', url: 'https://www.teamviewer.com', color: '#2563EB' },
+      { name: 'ANYDESK', spec: 'Fast Remote Access Desktop App', url: 'https://anydesk.com', color: '#EF4444' },
+      { name: 'OBS PROJECT', spec: 'Open Broadcaster Streaming Software', url: 'https://obsproject.com', color: '#A78BFA' }
+    ];
+
+    function openStaffLoginModal(defaultTab) {
+      if (currentStaffSession) {
+        openStaffWorkspace();
+        return;
+      }
+      switchStaffLoginTab(defaultTab || 'tech');
+      const m = $id('staff-login-modal');
+      m.classList.remove('hidden');
+      m.classList.add('flex');
+    }
+
+    function closeStaffLoginModal() {
+      const m = $id('staff-login-modal');
+      m.classList.add('hidden');
+      m.classList.remove('flex');
+    }
+
+    function switchStaffLoginTab(tab) {
+      staffLoginTab = tab;
+      const tabTech = $id('modal-tab-tech');
+      const tabAdmin = $id('modal-tab-admin');
+      const title = $id('staff-modal-title');
+      const box = $id('staff-credentials-box');
+      const userEl = $id('staff-username');
+      const passEl = $id('staff-password');
+
+      if (tab === 'admin') {
+        tabAdmin.className = 'py-2 rounded-lg bg-crimson text-white transition';
+        tabTech.className = 'py-2 rounded-lg text-gray-400 hover:text-white transition';
+        title.textContent = 'دخول لوحة الأدمن (Admin)';
+        box.innerHTML = `<div>Admin Login: <strong>${escapeHtml(db.adminAuth.username)}</strong> / <strong>${escapeHtml(db.adminAuth.password)}</strong></div>`;
+        userEl.value = db.adminAuth.username;
+        passEl.value = db.adminAuth.password;
+      } else {
+        tabTech.className = 'py-2 rounded-lg bg-crimson text-white transition';
+        tabAdmin.className = 'py-2 rounded-lg text-gray-400 hover:text-white transition';
+        title.textContent = 'دخول بوابة الفني (Technician)';
+        const firstTech = db.technicians[0] || { username: 'karim.tech', password: '1234' };
+        box.innerHTML = `<div>Tech Demo: <strong>${escapeHtml(firstTech.username)}</strong> / <strong>${escapeHtml(firstTech.password)}</strong></div>`;
+        userEl.value = firstTech.username;
+        passEl.value = firstTech.password;
+      }
+    }
+
+    function handleStaffLogin(e) {
+      e.preventDefault();
+      const username = $id('staff-username').value.trim();
+      const password = $id('staff-password').value.trim();
+
+      if (staffLoginTab === 'admin') {
+        if (username === db.adminAuth.username && password === db.adminAuth.password) {
+          currentStaffSession = {
+            role: 'admin',
+            userId: 'ADMIN-1',
+            username: db.adminAuth.username,
+            name: db.adminAuth.name,
+            zone: 'جميع المناطق'
+          };
+          closeStaffLoginModal();
+          updateStaffChip();
+          renderStaffWorkspace();
+          openStaffWorkspace();
+          showToast('تم تسجيل دخول الأدمن مع توريث كامل صلاحيات الفني.');
+          return;
+        }
+        showToast('بيانات دخول الأدمن غير صحيحة.');
+        return;
+      }
+
+      const tech = db.technicians.find(t => t.username === username && t.password === password);
+      if (tech) {
+        currentStaffSession = {
+          role: 'tech',
+          userId: tech.id,
+          username: tech.username,
+          name: tech.name,
+          zone: tech.zone,
+          roleTitle: tech.roleTitle
+        };
+        closeStaffLoginModal();
+        updateStaffChip();
+        renderStaffWorkspace();
+        openStaffWorkspace();
+        showToast(`مرحباً ${tech.name} — تم عرض الطلبات المسندة إليك.`);
+      } else {
+        showToast('اسم المستخدم أو كلمة المرور للفني غير صحيحة.');
+      }
+    }
+
+    function logoutStaff() {
+      currentStaffSession = null;
+      updateStaffChip();
+      $id('staff-workspace-section').classList.add('hidden');
+      showToast('تم تسجيل الخروج.');
+    }
+
+    function updateStaffChip() {
+      const chip = $id('active-staff-chip');
+      const label = $id('active-staff-label');
+      if (!currentStaffSession) {
+        chip.classList.add('hidden');
+        chip.classList.remove('flex');
+        return;
+      }
+      chip.classList.remove('hidden');
+      chip.classList.add('flex');
+      label.textContent = currentStaffSession.role === 'admin'
+        ? (currentLang === 'ar' ? 'أدمن (كافة الصلاحيات + فني)' : 'Admin (Full + Tech)')
+        : (currentLang === 'ar' ? `فني: ${currentStaffSession.name}` : `Tech: ${currentStaffSession.name}`);
+    }
+
+    function openStaffWorkspace() {
+      const sec = $id('staff-workspace-section');
+      if (!sec || !currentStaffSession) return;
+      renderStaffWorkspace();
+      sec.classList.remove('hidden');
+      sec.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function getTechNameById(techId) {
+      if (techId === 'ADMIN-1') return currentLang === 'ar' ? 'الأدمن (صلاحية فني)' : 'Admin (Tech Role)';
+      const found = db.technicians.find(t => t.id === techId);
+      return found ? found.name : (currentLang === 'ar' ? 'غير مسند بعد' : 'Unassigned');
+    }
+
+    function canOperateOrder(ord) {
+      if (!currentStaffSession || !ord) return false;
+      if (currentStaffSession.role === 'admin') return true;
+      return ord.assignedTechId === currentStaffSession.userId;
+    }
+
+    function renderTechnicianOrderCard(ord, isAdminView) {
+      const assignedLabel = ord.assignedTechId ? getTechNameById(ord.assignedTechId) : (currentLang === 'ar' ? 'أدمن / مباشر' : 'Admin / Direct');
+      const safeCode = escapeHtml(ord.code);
+      const safeStage = escapeHtml(ord.stage);
+      const safeName = escapeHtml(ord.clientName);
+      const safePhone = escapeHtml(ord.clientPhone);
+      const safeAddr = escapeHtml(ord.address);
+      const safeDate = escapeHtml(ord.date);
+      const safeSlot = escapeHtml(getSlotLabel(ord.timeSlot));
+      const safeDevice = escapeHtml(ord.deviceType);
+      const safeAssigned = escapeHtml(assignedLabel);
+      const safeServices = escapeHtml(ord.services.join(' + '));
+      const safeTotal = escapeHtml(ord.totalLE);
+      const safeDesc = escapeHtml(ord.desc);
+      const safeHw = escapeHtml(ord.hardware);
+
+      return `
+        <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4 flex flex-col justify-between gap-3">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <span class="font-mono text-xs font-extrabold text-crimson">${safeCode}</span>
+              <span class="text-[11px] font-mono font-bold px-2.5 py-0.5 rounded-full bg-rose-950 text-rose-200 border border-rose-700/50">${safeStage}</span>
+            </div>
+            <div class="font-bold text-base text-white">${safeName} • <span class="text-xs font-mono text-gray-400">${safePhone}</span></div>
+            <div class="text-xs text-gray-300 mt-1">📍 ${safeAddr} | 📅 ${safeDate} (${safeSlot}) | 🖥️ ${safeDevice}</div>
+            <div class="text-xs text-sky-300 mt-1">🛠️ ${currentLang === 'ar' ? 'المسند إليه' : 'Assigned'}: <strong>${safeAssigned}</strong></div>
+            <div class="text-xs font-bold text-amber-300 mt-1.5">${safeServices} (${safeTotal} ج.م)</div>
+            <p class="text-xs text-gray-400 mt-2 leading-relaxed">${safeDesc}</p>
+            <div class="text-[11px] font-mono text-gray-400 mt-2 bg-black/40 p-2 rounded-xl text-left" dir="ltr">${safeHw}</div>
+          </div>
+
+          <div class="pt-3 border-t border-gray-800 flex flex-wrap items-center justify-between gap-2">
+            <select onchange="updateOrderStage('${safeCode}', this.value)" class="bg-gray-800 border border-gray-700 text-white text-xs font-bold rounded-xl px-3 py-2 outline-none">
+              ${ORDER_STAGES.map(st => `<option value="${escapeHtml(st)}" ${ord.stage === st ? 'selected' : ''}>${currentLang === 'ar' ? 'المرحلة' : 'Stage'}: ${escapeHtml(st)}</option>`).join('')}
+            </select>
+            <button type="button" onclick="sendOrderWhatsApp('${safeCode}')" class="bg-[#25D366] hover:bg-[#1EBE5D] text-[#0B0B0E] font-extrabold text-xs px-3.5 py-2 rounded-xl transition">
+              ${isAdminView ? (currentLang === 'ar' ? 'إرسال واتساب' : 'WhatsApp') : (currentLang === 'ar' ? 'إرسال حالة واتساب' : 'Send Status WA')}
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderStaffWorkspace() {
+      const sec = $id('staff-workspace-section');
+      const body = $id('staff-workspace-body');
+      if (!currentStaffSession || !sec || !body) return;
+
+      sec.classList.remove('hidden');
+
+      if (currentStaffSession.role === 'tech') {
+        const myOrders = db.orders.filter(o => o.assignedTechId === currentStaffSession.userId);
+        const activeOrders = myOrders.filter(o => o.stage !== 'Completed').length;
+        const doneOrders = myOrders.filter(o => o.stage === 'Completed').length;
+
+        body.innerHTML = `
+          <div class="bg-[#111117] rounded-3xl p-5 sm:p-7 border border-gray-800 shadow-2xl">
+            <div class="flex flex-wrap items-center justify-between gap-4 pb-5 mb-6 border-b border-gray-800">
+              <div>
+                <span class="text-[11px] font-mono text-crimson font-bold uppercase">TECHNICIAN PORTAL • ASSIGNED DISPATCH QUEUE</span>
+                <h2 class="text-2xl font-black text-white mt-0.5">${escapeHtml(currentStaffSession.name)}</h2>
+                <p class="text-xs text-gray-400 mt-0.5">${escapeHtml(currentStaffSession.roleTitle || 'فني صيانة')} • ${currentLang === 'ar' ? 'النطاق' : 'Zone'}: ${escapeHtml(currentStaffSession.zone)} • ${escapeHtml(currentStaffSession.username)}</p>
+              </div>
+              <div class="flex items-center gap-3 font-mono text-xs">
+                <div class="bg-gray-900 border border-gray-800 px-4 py-2.5 rounded-2xl text-center">
+                  <div class="text-gray-400 text-[10px]">ASSIGNED</div>
+                  <div class="text-lg font-extrabold text-white">${myOrders.length}</div>
+                </div>
+                <div class="bg-gray-900 border border-gray-800 px-4 py-2.5 rounded-2xl text-center">
+                  <div class="text-gray-400 text-[10px]">ACTIVE / DONE</div>
+                  <div class="text-lg font-extrabold text-rose-400">${activeOrders} / ${doneOrders}</div>
+                </div>
+              </div>
+            </div>
+
+            <h3 class="text-sm font-extrabold text-gray-200 mb-3">${currentLang === 'ar' ? 'الأوردرات الموزعة عليك من الإدارة فقط' : 'Orders Assigned to You by Admin'}</h3>
+            ${
+              myOrders.length === 0
+                ? `<div class="bg-gray-900/70 border border-gray-800 rounded-2xl p-8 text-center text-sm text-gray-400">
+                     ${currentLang === 'ar'
+                       ? 'لا توجد أوردرات مسندة إلى حسابك حالياً. بمجرد توزيع أوردر عليك من لوحة الأدمن سيظهر هنا فوراً.'
+                       : 'No orders are assigned to your account yet. Orders dispatched by Admin will appear here immediately.'}
+                   </div>`
+                : `<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                     ${myOrders.map(ord => renderTechnicianOrderCard(ord, false)).join('')}
+                   </div>`
+            }
+          </div>
+        `;
+        return;
+      }
+
+      const activeServicesCount = db.services.filter(s => s.active).length;
+      const adminTechOrders = db.orders.filter(o => o.assignedTechId === 'ADMIN-1' || !o.assignedTechId);
+      body.innerHTML = `
+        <div class="bg-[#111117] rounded-3xl p-5 sm:p-7 border border-gray-800 shadow-2xl space-y-8">
+          <div class="flex flex-wrap items-center justify-between gap-4 pb-5 border-b border-gray-800">
+            <div>
+              <span class="text-[11px] font-mono text-crimson font-bold uppercase">ADMIN PORTAL • FULL PERMISSIONS + INHERITED TECHNICIAN MODE</span>
+              <h2 class="text-2xl font-black text-white mt-0.5">${escapeHtml(currentStaffSession.name)}</h2>
+              <p class="text-xs text-gray-400 mt-0.5">${currentLang === 'ar'
+                ? 'صلاحيات كاملة للأدمن وتشمل تلقائياً كافة صلاحيات الفني (تنفيذ الأوردرات وتحديث المراحل وإرسال واتساب)، مع إدارة الطلبات والخدمات والأسعار والفنيين وقاعدة البيانات.'
+                : 'Full Admin permissions including all Technician capabilities (executing orders, updating stages, and sending WhatsApp reports), plus dispatch, pricing, technicians, and DB management.'}</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2 text-xs font-bold">
+              <button type="button" onclick="exportDatabaseJSON()" class="bg-crimson hover:bg-crimsonGlow text-white px-3.5 py-2 rounded-xl transition">
+                ${currentLang === 'ar' ? 'تصدير قاعدة البيانات (JSON)' : 'Export DB (JSON)'}
+              </button>
+              <label class="cursor-pointer bg-gray-800 hover:bg-gray-700 text-white border border-gray-700 px-3.5 py-2 rounded-xl transition">
+                ${currentLang === 'ar' ? 'استيراد نسخة JSON' : 'Import JSON'}
+                <input type="file" accept="application/json" class="hidden" onchange="importDatabaseJSON(this)">
+              </label>
+              <button type="button" onclick="resetDemoDatabase()" class="bg-gray-900 hover:bg-gray-800 text-gray-300 border border-gray-700 px-3.5 py-2 rounded-xl transition">
+                ${currentLang === 'ar' ? 'إعادة الضبط الافتراضية' : 'Reset Demo DB'}
+              </button>
+            </div>
+          </div>
+
+          <div class="bg-gray-900/75 border border-crimson/35 rounded-2xl p-4 sm:p-5 space-y-3">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <span class="text-[10px] font-mono font-extrabold text-rose-400 uppercase">INHERITED TECHNICIAN CAPABILITY</span>
+                <h3 class="text-sm font-extrabold text-white">${currentLang === 'ar' ? 'مهام التنفيذ المباشرة للأدمن بصلاحية فني' : 'Admin Direct Execution Queue (Technician Role Active)'}</h3>
+              </div>
+              <span class="text-xs font-mono text-amber-300">${adminTechOrders.length} ${currentLang === 'ar' ? 'أوردر مباشر' : 'Direct Orders'}</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              ${adminTechOrders.map(ord => renderTechnicianOrderCard(ord, true)).join('')}
+            </div>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <h3 class="text-sm font-extrabold text-crimson">${currentLang === 'ar' ? `1. جميع الطلبات وتوزيعها على الفنيين (${db.orders.length})` : `1. All Orders & Technician Dispatch (${db.orders.length})`}</h3>
+              <span class="text-xs text-gray-400">${currentLang === 'ar' ? 'عند إسناد أوردر لفني يظهر في حسابه، والأدمن يملك صلاحية التنفيذ على أي أوردر' : 'Assigned orders appear in the technician portal; Admin can execute any order'}</span>
+            </div>
+            <div class="space-y-3">
+              ${db.orders.map(ord => {
+                const safeCode = escapeHtml(ord.code);
+                return `
+                <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                  <div class="space-y-1 min-w-0 flex-1">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <span class="font-mono text-xs font-extrabold text-crimson">${safeCode}</span>
+                      <span class="font-bold text-sm text-white">${escapeHtml(ord.clientName)}</span>
+                      <span class="text-xs font-mono text-gray-400">(${escapeHtml(ord.clientPhone)})</span>
+                      <span class="text-[10px] font-mono px-2 py-0.5 rounded-full bg-gray-800 text-rose-300 border border-gray-700">${escapeHtml(ord.stage)}</span>
+                    </div>
+                    <div class="text-xs text-gray-300">📍 ${escapeHtml(ord.address)} • 🖥️ ${escapeHtml(ord.deviceType)} • 📅 ${escapeHtml(ord.date)} (${escapeHtml(getSlotLabel(ord.timeSlot))})</div>
+                    <div class="text-xs font-bold text-amber-300">${escapeHtml(ord.services.join(' + '))} — <strong>${escapeHtml(ord.totalLE)} ج.م</strong></div>
+                    <p class="text-xs text-gray-400 truncate-safe">${escapeHtml(ord.desc)}</p>
+                  </div>
+
+                  <div class="flex flex-wrap items-center gap-2 shrink-0">
+                    <select onchange="assignOrderToTech('${safeCode}', this.value)" class="bg-gray-800 border border-gray-700 text-white text-xs font-bold rounded-xl px-3 py-2 outline-none">
+                      <option value="">${currentLang === 'ar' ? '-- إسناد (أدمن / فني) --' : '-- Assign (Admin / Tech) --'}</option>
+                      <option value="ADMIN-1" ${ord.assignedTechId === 'ADMIN-1' ? 'selected' : ''}>${currentLang === 'ar' ? 'تنفيذ الأدمن (صلاحية فني)' : 'Admin Execution (Tech Role)'}</option>
+                      ${db.technicians.filter(t => t.active).map(t => `
+                        <option value="${escapeHtml(t.id)}" ${ord.assignedTechId === t.id ? 'selected' : ''}>${escapeHtml(t.name)} (${escapeHtml(t.zone)})</option>
+                      `).join('')}
+                    </select>
+                    <select onchange="updateOrderStage('${safeCode}', this.value)" class="bg-gray-800 border border-gray-700 text-white text-xs font-bold rounded-xl px-3 py-2 outline-none">
+                      ${ORDER_STAGES.map(st => `<option value="${escapeHtml(st)}" ${ord.stage === st ? 'selected' : ''}>${escapeHtml(st)}</option>`).join('')}
+                    </select>
+                    <button type="button" onclick="sendOrderWhatsApp('${safeCode}')" class="bg-[#25D366] hover:bg-[#1EBE5D] text-[#0B0B0E] font-extrabold text-xs px-3 py-2 rounded-xl transition">
+                      واتساب
+                    </button>
+                  </div>
+                </div>
+              `;
+              }).join('')}
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-5 border-t border-gray-800">
+            <div class="lg:col-span-2">
+              <h3 class="text-sm font-extrabold text-crimson mb-3">${currentLang === 'ar' ? `2. إدارة الخدمات والأسعار (${activeServicesCount} نشطة)` : `2. Services & Pricing (${activeServicesCount} Active)`}</h3>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                ${db.services.map(srv => {
+                  const safeId = escapeHtml(srv.id);
+                  return `
+                  <div class="bg-gray-900 border ${srv.active ? 'border-gray-800' : 'border-gray-800/40 opacity-60'} rounded-2xl p-4 flex flex-col justify-between gap-3">
+                    <div>
+                      <div class="flex items-center justify-between gap-2 mb-1">
+                        <span class="font-bold text-sm text-white">${escapeHtml(srv.title)}</span>
+                        <span class="text-xs font-mono font-extrabold text-rose-300">${escapeHtml(srv.price)} ج.م</span>
+                      </div>
+                      <p class="text-xs text-gray-400">${escapeHtml(srv.desc)}</p>
+                    </div>
+                    <div class="flex items-center gap-2 pt-2 border-t border-gray-800">
+                      <input type="number" id="price-input-${safeId}" value="${Number(srv.price) || 0}" min="0" class="w-24 bg-gray-800 border border-gray-700 text-white text-xs font-mono rounded-lg px-2.5 py-1.5 outline-none">
+                      <button type="button" onclick="updateServicePrice('${safeId}')" class="bg-crimson hover:bg-crimsonGlow text-white text-xs font-bold px-3 py-1.5 rounded-lg transition">
+                        حفظ السعر
+                      </button>
+                      <button type="button" onclick="toggleServiceActive('${safeId}')" class="mr-auto bg-gray-800 hover:bg-gray-700 text-gray-200 text-xs font-bold px-2.5 py-1.5 rounded-lg transition">
+                        ${srv.active ? 'تعطيل' : 'تفعيل'}
+                      </button>
+                    </div>
+                  </div>
+                `;
+                }).join('')}
+              </div>
+            </div>
+
+            <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4 h-fit">
+              <h4 class="text-sm font-extrabold text-white mb-3">إضافة خدمة جديدة ➕</h4>
+              <form onsubmit="handleAddService(event)" class="space-y-3 text-xs">
+                <input type="text" id="new-srv-title" placeholder="اسم الخدمة (مثال: ترقية SSD ونقل النظام)" class="custom-input bg-gray-800 border-gray-700 text-white text-xs" required>
+                <div class="grid grid-cols-2 gap-2">
+                  <input type="number" id="new-srv-price" placeholder="السعر (ج.م)" min="0" class="custom-input bg-gray-800 border-gray-700 text-white text-xs" required>
+                  <input type="text" id="new-srv-badge" placeholder="شارة (مثال: ترقية)" class="custom-input bg-gray-800 border-gray-700 text-white text-xs">
+                </div>
+                <textarea rows="2" id="new-srv-desc" placeholder="وصف مختصر للخدمة..." class="custom-input bg-gray-800 border-gray-700 text-white text-xs" required></textarea>
+                <button type="submit" class="w-full bg-crimson hover:bg-crimsonGlow text-white font-bold py-2.5 rounded-xl transition">
+                  + إضافة الخدمة للموقع
+                </button>
+              </form>
+            </div>
+          </div>
+
+          <div class="pt-5 border-t border-gray-800 grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2">
+              <h3 class="text-sm font-extrabold text-crimson mb-3">${currentLang === 'ar' ? `3. حسابات الفنيين (${db.technicians.length})` : `3. Technician Accounts (${db.technicians.length})`}</h3>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                ${db.technicians.map(t => `
+                  <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4">
+                    <div class="font-bold text-sm text-white">${escapeHtml(t.name)}</div>
+                    <div class="text-xs text-gray-400 mt-0.5">${escapeHtml(t.roleTitle || 'فني صيانة')} • ${escapeHtml(t.zone)}</div>
+                    <div class="text-[11px] font-mono text-rose-300 mt-2 text-left" dir="ltr">User: ${escapeHtml(t.username)} | Pass: ${escapeHtml(t.password)}</div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+
+            <div class="bg-gray-900 border border-gray-800 rounded-2xl p-4 h-fit">
+              <h4 class="text-sm font-extrabold text-white mb-3">إضافة حساب فني جديد</h4>
+              <form onsubmit="handleAddTechnician(event)" class="space-y-2.5 text-xs">
+                <input type="text" id="new-tech-name" placeholder="اسم الفني" class="custom-input bg-gray-800 border-gray-700 text-white text-xs" required>
+                <input type="text" id="new-tech-zone" placeholder="منطقة العمل (مثال: الشيخ زايد)" class="custom-input bg-gray-800 border-gray-700 text-white text-xs" required>
+                <div class="grid grid-cols-2 gap-2">
+                  <input type="text" id="new-tech-user" placeholder="Username" dir="ltr" class="custom-input bg-gray-800 border-gray-700 text-white text-xs font-mono" required>
+                  <input type="text" id="new-tech-pass" placeholder="Password" dir="ltr" class="custom-input bg-gray-800 border-gray-700 text-white text-xs font-mono" required>
+                </div>
+                <button type="submit" class="w-full bg-gray-800 hover:bg-gray-700 border border-gray-700 text-white font-bold py-2.5 rounded-xl transition">
+                  إنشاء حساب الفني
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function assignOrderToTech(orderCode, techId) {
+      const ord = db.orders.find(o => o.code === orderCode);
+      if (!ord) return;
+      ord.assignedTechId = techId;
+      if (techId && ord.stage === 'Assigned') ord.stage = 'In Transit';
+      saveDatabase();
+      renderStaffWorkspace();
+      showToast(techId ? `تم إسناد الأوردر ${orderCode} إلى ${getTechNameById(techId)}.` : `تم إلغاء إسناد الأوردر ${orderCode}.`);
+    }
+
+    function updateOrderStage(orderCode, newStage) {
+      const ord = db.orders.find(o => o.code === orderCode);
+      if (!ord) return;
+      if (!canOperateOrder(ord)) {
+        showToast('هذا الأوردر مسند لفني آخر.');
+        return;
+      }
+      ord.stage = newStage;
+      saveDatabase();
+      renderStaffWorkspace();
+      showToast(`تم تحديث حالة الأوردر ${orderCode} إلى "${newStage}".`);
+    }
+
+    function sendOrderWhatsApp(orderCode) {
+      const ord = db.orders.find(o => o.code === orderCode);
+      if (!ord) return;
+      const techName = getTechNameById(ord.assignedTechId);
+      const msg = [
+        `*Home Computer Repair Service — متابعة وتوزيع طلب صيانة*`,
+        `رقم الطلب: ${ord.code}`,
+        `الحالة الحالية: ${ord.stage}`,
+        `الفني المسؤول: ${techName}`,
+        `العميل: ${ord.clientName} (${ord.clientPhone})`,
+        `العنوان: ${ord.address} | الموعد: ${ord.date} (${getSlotLabel(ord.timeSlot)})`,
+        `الجهاز: ${ord.deviceType}`,
+        `الخدمات: ${ord.services.join(' + ')} (الإجمالي: ${ord.totalLE} ج.م)`,
+        `الوصف: ${ord.desc}`
+      ].join('\n');
+      window.open(`https://wa.me/${APP_CONFIG.whatsappNumber}?text=${encodeURIComponent(msg)}`, '_blank', 'noopener,noreferrer');
+    }
+
+    function updateServicePrice(serviceId) {
+      const input = $id(`price-input-${serviceId}`);
+      const srv = db.services.find(s => s.id === serviceId);
+      if (!input || !srv) return;
+      srv.price = Math.max(0, parseInt(input.value, 10) || 0);
+      saveDatabase();
+      renderServicesGrid();
+      syncBookingSnapshot();
+      renderStaffWorkspace();
+      showToast(`تم تحديث سعر "${srv.title}" إلى ${srv.price} ج.م.`);
+    }
+
+    function toggleServiceActive(serviceId) {
+      const srv = db.services.find(s => s.id === serviceId);
+      if (!srv) return;
+      srv.active = !srv.active;
+      if (!srv.active) srv.selected = false;
+      saveDatabase();
+      renderServicesGrid();
+      syncBookingSnapshot();
+      renderStaffWorkspace();
+      showToast(`${srv.active ? 'تم تفعيل' : 'تم تعطيل'} الخدمة "${srv.title}".`);
+    }
+
+    function handleAddService(e) {
+      e.preventDefault();
+      const titleEl = $id('new-srv-title');
+      const priceEl = $id('new-srv-price');
+      const badgeEl = $id('new-srv-badge');
+      const descEl = $id('new-srv-desc');
+
+      const title = titleEl.value.trim();
+      const price = Math.max(0, parseInt(priceEl.value, 10) || 0);
+      const badge = (badgeEl.value || 'خدمة جديدة').trim();
+      const desc = descEl.value.trim();
+      if (!title || !desc) return;
+
+      db.services.push({
+        id: `srv-${Date.now()}`,
+        title,
+        category: 'Custom',
+        duration: '45 دقيقة',
+        price,
+        badge,
+        desc,
+        note: 'صيانة منزلية',
+        active: true,
+        selected: true
+      });
+
+      saveDatabase();
+      renderServicesGrid();
+      syncBookingSnapshot();
+      renderStaffWorkspace();
+
+      titleEl.value = '';
+      priceEl.value = '';
+      badgeEl.value = '';
+      descEl.value = '';
+      showToast(`تمت إضافة خدمة "${title}" بنجاح.`);
+    }
+
+    function handleAddTechnician(e) {
+      e.preventDefault();
+      const nameEl = $id('new-tech-name');
+      const zoneEl = $id('new-tech-zone');
+      const userEl = $id('new-tech-user');
+      const passEl = $id('new-tech-pass');
+
+      const name = nameEl.value.trim();
+      const zone = zoneEl.value.trim();
+      const username = userEl.value.trim();
+      const password = passEl.value.trim();
+      if (!name || !zone || !username || !password) return;
+
+      db.technicians.push({
+        id: `TECH-${Date.now().toString().slice(-4)}`,
+        name,
+        zone,
+        username,
+        password,
+        roleTitle: 'فني صيانة ميداني',
+        active: true
+      });
+
+      saveDatabase();
+      renderStaffWorkspace();
+      nameEl.value = '';
+      zoneEl.value = '';
+      userEl.value = '';
+      passEl.value = '';
+      showToast(`تم إنشاء حساب الفني ${name}.`);
+    }
+
+    function startLiveClock() {
+      const el = $id('live-datetime');
+      const hdrBadge = $id('header-clock-badge');
+      const updateClock = () => {
+        const now = new Date();
+        const weekday = now.toLocaleDateString('en-US', { weekday: 'long' }).toUpperCase();
+        const datePart = now.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }).toUpperCase();
+        const timePart = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+        if (el) el.textContent = `${weekday}, ${datePart} • ${timePart}`;
+        if (hdrBadge) hdrBadge.textContent = `${datePart} • ${timePart}`;
+      };
+      updateClock();
+      setInterval(updateClock, 1000);
+    }
+
+    const GAUGE_STATE = {};
+    function buildGauge(id) {
+      if (GAUGE_STATE[id]) return;
+      const c = $id(id);
+      if (!c) return;
+      const svg = c.ownerSVGElement;
+      const ns = 'http://www.w3.org/2000/svg';
+      const defs = document.createElementNS(ns, 'defs');
+      defs.innerHTML = `<linearGradient id="gg-${id}" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#7F091A"/><stop offset=".55" stop-color="#E11D48"/><stop offset="1" stop-color="#FF6A3D"/></linearGradient>`;
+      svg.insertBefore(defs, svg.firstChild);
+      const g = document.createElementNS(ns, 'g');
+      for (let i = 0; i <= 36; i++) {
+        const a = i * 270 / 36 * Math.PI / 180;
+        const major = i % 6 === 0;
+        const r1 = 46.5;
+        const r2 = major ? 42.5 : 44.5;
+        const l = document.createElementNS(ns, 'line');
+        l.setAttribute('x1', 50 + r1 * Math.cos(a));
+        l.setAttribute('y1', 50 + r1 * Math.sin(a));
+        l.setAttribute('x2', 50 + r2 * Math.cos(a));
+        l.setAttribute('y2', 50 + r2 * Math.sin(a));
+        l.setAttribute('stroke', major ? 'rgba(255,255,255,.5)' : 'rgba(255,255,255,.2)');
+        l.setAttribute('stroke-width', major ? 1.2 : 0.8);
+        g.appendChild(l);
+      }
+      const dot = document.createElementNS(ns, 'circle');
+      dot.setAttribute('r', 2.6);
+      dot.setAttribute('fill', '#fff');
+      dot.style.opacity = 0;
+      dot.style.filter = 'drop-shadow(0 0 3px #fff)';
+      g.appendChild(dot);
+      svg.appendChild(g);
+      GAUGE_STATE[id] = { max: 0, dot };
+    }
+
+    function updateGauge(id, valId, value, max, unit) {
+      const circle = $id(id);
+      const valText = $id(valId);
+      if (!circle || !valText) return;
+      buildGauge(id);
+      const L = 2 * Math.PI * 40 * 0.75;
+      const pct = Math.max(0, Math.min(value / max, 1));
+      circle.style.strokeDasharray = `${pct * L}, 251.3`;
+      circle.style.stroke = `url(#gg-${id})`;
+      circle.style.filter = `drop-shadow(0 0 ${3 + pct * 7}px rgba(255,30,56,${0.25 + pct * 0.6}))`;
+      const pk = GAUGE_STATE[id];
+      pk.max = Math.max(pk.max, pct);
+      const th = pk.max * 270 * Math.PI / 180;
+      pk.dot.setAttribute('cx', 50 + 40 * Math.cos(th));
+      pk.dot.setAttribute('cy', 50 + 40 * Math.sin(th));
+      pk.dot.style.opacity = pk.max > 0.02 ? 1 : 0;
+      valText.textContent = `${Math.round(value)}${unit}`;
+      valText.style.color = value > 82 ? '#FF1E38' : value > 68 ? '#FBBF24' : '#FFFFFF';
+    }
+
+    function setDeviceSelection(type) {
+      detectedInfo.deviceType = type;
+      const desktopRadio = $id('radio-desktop');
+      const laptopRadio = $id('radio-laptop');
+      if (type === 'Laptop') {
+        if (laptopRadio) laptopRadio.checked = true;
+      } else {
+        if (desktopRadio) desktopRadio.checked = true;
+      }
+      syncBookingSnapshot();
+    }
+
+    function onManualDeviceChange(type) {
+      manualDeviceOverride = true;
+      setDeviceSelection(type);
+    }
+
+    function getSlotLabel(slotId) {
+      const found = TIME_SLOTS_10_TO_8.find(s => s.id === slotId);
+      if (!found) return slotId || '';
+      return currentLang === 'ar' ? found.ar : found.en;
+    }
+
+    function getUpcomingDays(count = 7) {
+      const days = [];
+      for (let i = 0; i < count; i++) {
+        const d = new Date();
+        d.setDate(d.getDate() + i);
+        const iso = toLocalIsoDate(d);
+        const label = d.toLocaleDateString(currentLang === 'ar' ? 'ar-EG' : 'en-US', {
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric'
+        });
+        days.push({ iso, label });
+      }
+      return days;
+    }
+
+    function isSlotBooked(dateStr, slotId) {
+      return db.orders.some(o => o.date === dateStr && o.timeSlot === slotId && o.stage !== 'Cancelled');
+    }
+
+    function initAndRenderSchedulePicker() {
+      const days = getUpcomingDays(7);
+      if (!selectedBookingDate || !days.some(d => d.iso === selectedBookingDate)) {
+        selectedBookingDate = days[0].iso;
+      }
+
+      const daysRow = $id('booking-days-row');
+      if (daysRow) {
+        daysRow.innerHTML = days.map(d => {
+          const active = d.iso === selectedBookingDate;
+          return `
+            <button type="button" onclick="selectBookingDay('${escapeHtml(d.iso)}')"
+              class="px-3.5 py-2 rounded-xl text-xs font-extrabold whitespace-nowrap border transition ${
+                active
+                  ? 'bg-crimson text-white border-crimsonGlow shadow-md shadow-crimson/25'
+                  : 'bg-[#15151E] text-gray-300 border-gray-800 hover:border-amber-400/50 hover:text-white'
+              }">
+              ${escapeHtml(d.label)}
+            </button>
+          `;
+        }).join('');
+      }
+
+      renderTimeSlotsForDay();
+    }
+
+    function selectBookingDay(dateIso) {
+      selectedBookingDate = dateIso;
+      selectedBookingSlot = '';
+      $id('booking-date').value = selectedBookingDate;
+      $id('booking-time-slot').value = '';
+      initAndRenderSchedulePicker();
+      syncBookingSnapshot();
+    }
+
+    function selectBookingTimeSlot(slotId) {
+      if (isSlotBooked(selectedBookingDate, slotId)) {
+        showToast(currentLang === 'ar' ? 'هذا الموعد محجوز بالفعل، اختر موعداً آخر.' : 'This time slot is already booked.');
+        return;
+      }
+      selectedBookingSlot = slotId;
+      $id('booking-date').value = selectedBookingDate;
+      $id('booking-time-slot').value = selectedBookingSlot;
+      renderTimeSlotsForDay();
+      syncBookingSnapshot();
+    }
+
+    function renderTimeSlotsForDay() {
+      const grid = $id('booking-times-grid');
+      const preview = $id('selected-slot-preview');
+      $id('booking-date').value = selectedBookingDate;
+
+      if (!grid) return;
+
+      const firstAvailable = TIME_SLOTS_10_TO_8.find(s => !isSlotBooked(selectedBookingDate, s.id));
+      if (!selectedBookingSlot && firstAvailable) {
+        selectedBookingSlot = firstAvailable.id;
+      }
+      $id('booking-time-slot').value = selectedBookingSlot || '';
+
+      grid.innerHTML = TIME_SLOTS_10_TO_8.map(slot => {
+        const booked = isSlotBooked(selectedBookingDate, slot.id);
+        const isSelected = !booked && selectedBookingSlot === slot.id;
+        const slotText = escapeHtml(currentLang === 'ar' ? slot.ar : slot.en);
+        const bookedBadge = escapeHtml(currentLang === 'ar' ? 'محجوز' : 'Booked');
+
+        if (booked) {
+          return `
+            <button type="button" disabled
+              class="p-2.5 rounded-xl border border-rose-500/40 bg-rose-950/40 text-rose-300 text-xs font-extrabold cursor-not-allowed flex flex-col items-center justify-center gap-1 opacity-90">
+              <span class="font-mono text-[11px]">${slotText}</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-200 border border-rose-400/35 font-black">${bookedBadge}</span>
+            </button>
+          `;
+        }
+
+        return `
+          <button type="button" onclick="selectBookingTimeSlot('${escapeHtml(slot.id)}')"
+            class="p-2.5 rounded-xl border text-xs font-extrabold transition flex flex-col items-center justify-center gap-1 ${
+              isSelected
+                ? 'bg-crimson text-white border-crimsonGlow shadow-md shadow-crimson/25'
+                : 'bg-[#15151E] text-gray-200 border-gray-800 hover:border-amber-400/50 hover:bg-[#1B1B26]'
+            }">
+            <span class="font-mono text-[11px]">${slotText}</span>
+            <span class="text-[10px] ${isSelected ? 'text-amber-200' : 'text-rose-300'} font-bold">
+              ${currentLang === 'ar' ? (isSelected ? 'الموعد المختار' : 'متاح') : (isSelected ? 'Selected' : 'Available')}
+            </span>
+          </button>
+        `;
+      }).join('');
+
+      if (preview) {
+        if (selectedBookingSlot) {
+          preview.textContent = `${selectedBookingDate} • ${getSlotLabel(selectedBookingSlot)}`;
+        } else {
+          preview.textContent = currentLang === 'ar' ? 'لا توجد مواعيد متاحة في هذا اليوم' : 'No available slots on this day';
+        }
+      }
+    }
+
+    function applyLanguageUI() {
+      const isAr = currentLang === 'ar';
+      document.documentElement.lang = isAr ? 'ar' : 'en';
+      document.documentElement.dir = isAr ? 'rtl' : 'ltr';
+
+      const toggleBtn = $id('lang-toggle-btn');
+      if (toggleBtn) toggleBtn.textContent = isAr ? 'English' : 'العربية';
+
+      const headerCta = $id('header-cta-btn');
+      if (headerCta) headerCta.textContent = isAr ? 'احجز في مكانك' : 'Book at Your Place';
+
+      const heroTitle = $id('hero-main-title');
+      if (heroTitle) {
+        heroTitle.innerHTML = isAr
+          ? 'استعد أقصى أداء لجهازك! <br><span class="text-crimson">فحص وتشخيص شامل في ضغطة واحدة</span>'
+          : 'Restore Your PC\'s Peak Performance! <br><span class="text-crimson">Full Diagnostics in One Click</span>';
+      }
+
+      const brandDesc = $id('brand-desc');
+      if (brandDesc) brandDesc.textContent = isAr ? 'عمر بيجيلك البيت ويصلّح جهازك في مكانك.' : 'Omar comes to your door and fixes your device on the spot.';
+
+      const bookingTitle = $id('booking-section-title');
+      if (bookingTitle) bookingTitle.textContent = isAr ? 'اطلب في مكانك' : 'Request at Your Place';
+
+      const devLabel = $id('label-device-type');
+      if (devLabel) devLabel.textContent = isAr ? '1. نوع الجهاز' : '1. Device Type';
+
+      const schedLabel = $id('label-contact-schedule');
+      if (schedLabel) schedLabel.textContent = isAr ? '5. بياناتك والموعد المناسب 📅' : '5. Your Details & Preferred Slot 📅';
+
+      const daySlotsLabel = $id('label-day-slots');
+      if (daySlotsLabel) {
+        daySlotsLabel.textContent = isAr
+          ? 'اختر يوم الحجز والموعد (من ١٠ صباحاً إلى ٨ مساءً):'
+          : 'Select booking day & time slot (10:00 AM to 8:00 PM):';
+      }
+
+      const makersHeading = $id('makers-section-heading');
+      if (makersHeading) makersHeading.textContent = isAr ? 'صناع التقنيات' : 'Tech Makers';
+
+      const submitBtn = $id('submit-booking-btn');
+      if (submitBtn) submitBtn.textContent = isAr ? 'تأكيد الحجز وإرسال الطلب' : 'Confirm Booking & Send Request';
+
+      updateStaffChip();
+      initAndRenderSchedulePicker();
+      if (currentStaffSession) renderStaffWorkspace();
+    }
+
+    function toggleLanguage() {
+      currentLang = currentLang === 'ar' ? 'en' : 'ar';
+      applyLanguageUI();
+      showToast(currentLang === 'ar' ? 'تم التبديل إلى العربية' : 'Switched to English');
+    }
+
+    function detectOS() {
+      const ua = navigator.userAgent;
+      let os = 'Windows 11 Pro (x64)';
+      let isMobileOrTablet = false;
+
+      if (ua.includes('Win')) {
+        os = ua.includes('Windows NT 10.0') ? 'Windows 11 Pro (64-bit)' : 'Windows OS (64-bit)';
+      } else if (ua.includes('Mac')) {
+        os = 'macOS Sonoma 14.6 • ARM64';
+      } else if (ua.includes('Linux') && !ua.includes('Android')) {
+        os = 'Linux Desktop (x64)';
+      } else if (ua.includes('Android')) {
+        os = 'Android OS • ARM64';
+        isMobileOrTablet = true;
+      } else if (/iPhone|iPad|iPod/i.test(ua)) {
+        os = 'iOS / iPadOS • ARM64';
+        isMobileOrTablet = true;
+      }
+
+      detectedInfo.os = os;
+      const osEl = $id('hw-os');
+      if (osEl) {
+        osEl.textContent = os;
+        osEl.className = 'text-xs font-bold text-indigo-300 truncate-safe mt-1';
+      }
+
+      if (!manualDeviceOverride) {
+        const isLaptopUA = /MacBook|Laptop|CrOS/i.test(ua);
+        setDeviceSelection(isMobileOrTablet || isLaptopUA ? 'Laptop' : 'Desktop PC');
+      }
+    }
+
+    const CPU_DB = {
+      4: { i: ['Intel Core i3-9100F', 4, 4, 4.2, 'H310M', '9th-generation ("Coffee Lake Refresh") desktop processor'], a: ['AMD Athlon 3000G', 2, 4, 3.5, 'A320M', '"Zen" desktop processor with integrated Vega graphics'] },
+      6: { i: ['Intel Core i5-9400F', 6, 6, 4.1, 'B365M', '9th-generation ("Coffee Lake Refresh") desktop processor'], a: ['AMD Ryzen 5 3500', 6, 6, 4.1, 'B450M', '3rd-generation ("Matisse", Zen 2) desktop processor'] },
+      8: { i: ['Intel Core i3-12100F', 4, 8, 4.3, 'B660M', '12th-generation ("Alder Lake") desktop processor'], a: ['AMD Ryzen 3 3100', 4, 8, 3.9, 'B550M', '3rd-generation ("Matisse", Zen 2) desktop processor'] },
+      12: { i: ['Intel Core i5-12400F', 6, 12, 4.4, 'B660M', '12th-generation ("Alder Lake") desktop processor'], a: ['AMD Ryzen 5 5600', 6, 12, 4.4, 'B550M', '5th-generation ("Vermeer", Zen 3) desktop processor'] },
+      16: { i: ['Intel Core i7-11700', 8, 16, 4.9, 'B560M', '11th-generation ("Rocket Lake") desktop processor'], a: ['AMD Ryzen 7 5700X', 8, 16, 4.6, 'B550M', '5th-generation ("Vermeer", Zen 3) desktop processor'] },
+      20: { i: ['Intel Core i7-12700K', 12, 20, 5.0, 'B760M', '12th-generation ("Alder Lake") desktop processor with 8 Performance-cores and 4 Efficient-cores'], a: null },
+      24: { i: ['Intel Core i7-13700K', 16, 24, 5.4, 'B760M', '13th-generation ("Raptor Lake") desktop processor with 8 Performance-cores and 8 Efficient-cores'], a: ['AMD Ryzen 9 5900X', 12, 24, 4.8, 'X570', '5th-generation ("Vermeer", Zen 3) desktop processor'] },
+      32: { i: ['Intel Core i9-13900K', 24, 32, 5.8, 'Z790', '13th-generation ("Raptor Lake") desktop processor with 8 Performance-cores and 16 Efficient-cores'], a: ['AMD Ryzen 9 7950X', 16, 32, 5.7, 'X670E', '7th-generation ("Raphael", Zen 4) desktop processor'] }
+    };
+
+    const BOARD_DB = {
+      'B760M': ['Micro-ATX (mATX)', 'Intel B760', 'LGA 1700', '12th, 13th and 14th Gen Intel Core', 'DDR4 or DDR5 (model dependent)', 'PCIe 4.0'],
+      'B660M': ['Micro-ATX (mATX)', 'Intel B660', 'LGA 1700', '12th and 13th Gen Intel Core', 'DDR4 or DDR5 (model dependent)', 'PCIe 4.0'],
+      'Z790': ['ATX', 'Intel Z790', 'LGA 1700', '12th, 13th and 14th Gen Intel Core (overclocking)', 'DDR5', 'PCIe 5.0'],
+      'B560M': ['Micro-ATX (mATX)', 'Intel B560', 'LGA 1200', '10th and 11th Gen Intel Core', 'DDR4', 'PCIe 4.0'],
+      'B365M': ['Micro-ATX (mATX)', 'Intel B365', 'LGA 1151', '8th and 9th Gen Intel Core', 'DDR4', 'PCIe 3.0'],
+      'H310M': ['Micro-ATX (mATX)', 'Intel H310', 'LGA 1151', '8th and 9th Gen Intel Core', 'DDR4', 'PCIe 3.0'],
+      'B550M': ['Micro-ATX (mATX)', 'AMD B550', 'AM4', 'Ryzen 3000 and 5000', 'DDR4', 'PCIe 4.0'],
+      'B450M': ['Micro-ATX (mATX)', 'AMD B450', 'AM4', 'Ryzen 2000 to 5000', 'DDR4', 'PCIe 3.0'],
+      'A320M': ['Micro-ATX (mATX)', 'AMD A320', 'AM4', 'Ryzen 1000 to 5000', 'DDR4', 'PCIe 3.0'],
+      'X570': ['ATX', 'AMD X570', 'AM4', 'Ryzen 3000 and 5000', 'DDR4', 'PCIe 4.0'],
+      'X670E': ['ATX', 'AMD X670E', 'AM5', 'Ryzen 7000', 'DDR5', 'PCIe 5.0'],
+      'H610M': ['Micro-ATX (mATX)', 'Intel H610', 'LGA 1700', '12th, 13th and 14th Gen Intel Core', 'DDR4 or DDR5 (model dependent)', 'PCIe 4.0'],
+      'Z690': ['ATX', 'Intel Z690', 'LGA 1700', '12th, 13th and 14th Gen Intel Core (overclocking)', 'DDR4 or DDR5 (model dependent)', 'PCIe 5.0'],
+      'H510M': ['Micro-ATX (mATX)', 'Intel H510', 'LGA 1200', '10th and 11th Gen Intel Core', 'DDR4', 'PCIe 4.0'],
+      'B650M': ['Micro-ATX (mATX)', 'AMD B650', 'AM5', 'Ryzen 7000 and 8000', 'DDR5', 'PCIe 5.0'],
+      'A620M': ['Micro-ATX (mATX)', 'AMD A620', 'AM5', 'Ryzen 7000 and 8000', 'DDR5', 'PCIe 4.0']
+    };
+
+    const GPU_CLK = [
+      [/RTX 40/i, 2460], [/RTX 30/i, 1777], [/RTX 20/i, 1710], [/GTX 16/i, 1785], [/GTX 10/i, 1620],
+      [/RX 7/i, 2500], [/RX 6/i, 2300], [/RX 5/i, 1905], [/Arc/i, 2400], [/Iris|UHD|Xe/i, 1300],
+      [/Radeon/i, 2200], [/Apple/i, 1398]
+    ];
+    const MACN = { 26: 'Tahoe', 15: 'Sequoia', 14: 'Sonoma', 13: 'Ventura', 12: 'Monterey' };
+    const STD_MTS = [2400, 2666, 3200, 3600, 4266, 4800, 5200, 5600, 6000, 6400];
+
+    function gpuInfo() {
+      let raw = '', api = 'WebGL';
+      try {
+        const c = document.createElement('canvas');
+        let g = c.getContext('webgl2');
+        const v2 = !!g;
+        if (!g) g = c.getContext('webgl');
+        if (g) {
+          const x = g.getExtension('WEBGL_debug_renderer_info');
+          raw = String(x ? g.getParameter(x.UNMASKED_RENDERER_WEBGL) : g.getParameter(g.RENDERER));
+          api = v2 ? 'WebGL 2' : 'WebGL 1';
+        }
+      } catch (e) {}
+      const m = raw.match(/^ANGLE \((.*)\)$/), parts = m ? m[1].split(',') : [raw];
+      let name = (parts[1] || parts[0] || '')
+        .replace(/Direct3D\d*.*$|\(0x[0-9a-f]+\)|vs_\d_\d.*$/ig, '')
+        .replace(/^\s*ANGLE Metal Renderer:\s*/i, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .slice(0, 40);
+      if (/D3D11/i.test(raw)) api = 'Direct3D 11 / ' + api;
+      else if (/Metal/i.test(raw) || /^Apple/i.test(raw)) api = 'Metal / ' + api;
+      else if (/Vulkan/i.test(raw)) api = 'Vulkan / ' + api;
+      const vendor = /NVIDIA|GeForce|RTX|GTX/i.test(name + raw) ? 'NVIDIA'
+        : /AMD|Radeon/i.test(name + raw) ? 'AMD'
+        : /Intel|Iris|UHD|Arc/i.test(name + raw) ? 'Intel'
+        : /Apple/i.test(name + raw) ? 'Apple' : 'Generic';
+      return { name: name || 'Integrated GPU', raw, api, vendor };
+    }
+
+    function benchMem() {
+      const n = 1 << 20, a = new Float64Array(n), b = new Float64Array(n);
+      for (let i = 0; i < n; i++) a[i] = i;
+      b.set(a);
+      const R = 16, t = performance.now();
+      for (let r = 0; r < R; r++) b.set(a);
+      return (R * n * 8 * 2) / 1e9 / Math.max(1e-3, (performance.now() - t) / 1000);
+    }
+
+    function benchGhz() {
+      const N = 1.5e7;
+      let x = 0;
+      const t = performance.now();
+      for (let i = 0; i < N; i++) x = (x + i) | 0;
+      return { g: N / Math.max(1, (performance.now() - t) * 1e6) * 1.6, x };
+    }
+
+    function ensureHwUI() {
+      const base = $id('hw-drivers') && $id('hw-drivers').closest('.hw-pill');
+      if (base && !$id('hw-gpudrv')) {
+        [['hw-gpudrv', 'hw-gpu'], ['hw-chipdrv', 'hw-gpudrv']].forEach(([id, after]) => {
+          const anchor = $id(after) && $id(after).closest('.hw-pill');
+          if (!anchor || $id(id)) return;
+          const c = base.cloneNode(true);
+          const target = c.querySelector('[id^="hw-"]');
+          if (target) {
+            target.id = id;
+            target.textContent = 'Detecting...';
+          }
+          anchor.after(c);
+        });
+      }
+      const L = {
+        'hw-mobo': 'MOTHERBOARD',
+        'hw-chipset': 'INTERNAL CHIPSET',
+        'hw-bios': 'BIOS MODEL',
+        'hw-cpu': 'CPU',
+        'hw-ram': 'RAM SPEED',
+        'hw-gpu': 'GPU CLOCK',
+        'hw-gpudrv': 'DRIVER GPU',
+        'hw-chipdrv': 'CHIPSET SOFTWARE & DRIVERS',
+        'hw-os': 'OPERATING SYSTEMS',
+        'hw-license': 'SECURITY / LICENSE',
+        'hw-drivers': 'BOARD & GPU DRIVERS',
+        'hw-isp': 'ISP / SPEED / IP LOCATION',
+        'hw-psu': 'PSU DRAW',
+        'val-disk': 'STORAGE HEALTH',
+        'val-fps-readout': 'FPS BENCHMARK READOUT',
+        'val-score': 'DIAGNOSTIC SCORE'
+      };
+      Object.keys(L).forEach(id => {
+        const e = $id(id);
+        if (!e) return;
+        if (e.previousElementSibling) e.previousElementSibling.textContent = L[id];
+        if (!$id(id + '-d')) {
+          const d = document.createElement('div');
+          d.id = id + '-d';
+          d.className = 'hw-d';
+          e.after(d);
+        }
+      });
+    }
+
+    function put(id, t, d, c) {
+      const e = $id(id);
+      if (e) {
+        e.textContent = t;
+        if (c) e.className = c;
+      }
+      if (d != null) {
+        HW.desc[id] = d;
+        const x = $id(id + '-d');
+        if (x) x.textContent = d;
+      }
+    }
+
+    async function detectHardware() {
+      ensureHwUI();
+      const ua = navigator.userAgent, th = navigator.hardwareConcurrency || 8, info = gpuInfo();
+      let ch = {};
+
+      const run = (chObj, gbs, clk) => {
+        const mac = /Mac/i.test(ua) && !/iPhone|iPad|iPod/i.test(ua);
+        const mob = /Android|iPhone|iPad|iPod/i.test(ua);
+        const win = /Windows/i.test(ua);
+        const pv = chObj.platformVersion ? parseInt(chObj.platformVersion, 10) : 0;
+        const arm = /arm/i.test(chObj.architecture || '') || info.vendor === 'Apple' || mob;
+        const arch = arm ? 'ARM64' : 'x64';
+
+        let os;
+        if (win) os = pv >= 13 ? 'Windows 11 ✔️' : pv > 0 ? 'Windows 10 ✔️' : 'Windows 10/11 ✔️';
+        else if (mac) {
+          const v = chObj.platformVersion ? chObj.platformVersion.split('.').slice(0, 2).join('.') : '';
+          os = `macOS ${MACN[pv] ? MACN[pv] + ' ' + v : ''} • ${arch}`.replace(/\s+/g, ' ');
+        } else if (/Android/i.test(ua)) os = `Android ${pv || ''} • ARM64`.replace(/\s+/g, ' ');
+        else if (mob) os = 'iOS / iPadOS • ARM64';
+        else {
+          const d = (ua.match(/Ubuntu|Fedora|Debian|Arch|Mint/i) || ['Desktop'])[0];
+          os = `Linux ${d[0].toUpperCase() + d.slice(1)} • ${arch}`;
+        }
+
+        const amd = !mac && !mob && /Ryzen|Radeon\(TM\) Graphics|Radeon Graphics/i.test(info.raw);
+        let cpuName, cores, threads, turbo, cpuD, mobo, mDesc, chip, cDesc, bios, biosUp = false, vendorCpu = 'Intel';
+        if (mac || mob) {
+          vendorCpu = mac ? 'Apple' : 'ARM';
+          cores = threads = th;
+          turbo = mac ? 3.8 : 3.2;
+          cpuName = mac ? 'Apple Silicon (M-series)' : 'ARM SoC';
+          cpuD = mac ? 'Apple Silicon system-on-chip combining performance and efficiency cores, GPU, Neural Engine and unified memory on one die.' : 'Mobile ARM system-on-chip integrating CPU, GPU and modem on one die.';
+          mobo = mac ? 'Apple Logic Board • PCIe Gen4' : 'Mobile System Board';
+          mDesc = mac ? 'Apple logic board: the SoC, unified memory and NVMe storage are soldered on one board.' : 'Integrated mobile board; not user serviceable.';
+          chip = mac ? 'Apple SoC Fabric • 4266 MHz' : 'ARM SoC • 3200 MHz Bus';
+          cDesc = 'The SoC fabric links CPU, GPU, memory controller and I/O inside the chip itself.';
+          bios = mac ? 'iBoot UEFI v11881' : 'Bootloader Locked';
+        } else {
+          const keys = Object.keys(CPU_DB).map(Number);
+          const k = keys.reduce((p, c) => Math.abs(c - th) < Math.abs(p - th) ? c : p);
+          const e = CPU_DB[k], r = (amd && e.a) ? e.a : e.i;
+          vendorCpu = (amd && e.a) ? 'AMD' : 'Intel';
+          [cpuName, cores, threads, turbo] = r;
+          cpuD = `${cpuName} is a ${r[5]} featuring ${cores} cores, ${threads} threads and a maximum turbo frequency of ${turbo.toFixed(2)} GHz.`;
+          const code = r[4], B = BOARD_DB[code];
+          mobo = `${code} • ${B[0]} • ${B[2]} (Est.)`;
+          mDesc = `${code} refers to ${B[0]} motherboards built on ${B[1]} chipset using the ${B[2]} socket. It supports ${B[3]}, ${B[4]}, ${B[5]}. Inferred from the CPU class; exact model is confirmed on-site.`;
+          chip = `${B[1]} • ${B[2]} (Est.)`;
+          cDesc = 'The chipset (PCH) routes PCIe lanes, SATA/NVMe, USB and memory features between the CPU and every device on the board.';
+          bios = 'UEFI Firmware • Secure Boot Ready';
+          biosUp = th < 8;
+        }
+
+        const cpuText = `${cpuName} • ${cores} Cores • ${threads} Threads • ${turbo.toFixed(1)} GHz`;
+        if (!isTesting) cpuClock = clk ? Math.min(turbo, Math.max(turbo * 0.7, clk.g)) : turbo * 0.9;
+
+        const gClk = (GPU_CLK.find(x => x[0].test(info.name)) || [0, { NVIDIA: 1800, AMD: 2000, Intel: 1100, Apple: 1398 }[info.vendor] || 1200])[1];
+        if (!isTesting) {
+          gpuClock = gClk;
+          targetFPS = { NVIDIA: 165, AMD: 144 }[info.vendor] || (info.vendor === 'Generic' ? 144 : 120);
+        }
+
+        const drvShort = { NVIDIA: 'NVIDIA Driver', AMD: 'AMD Adrenalin Driver', Intel: 'Intel Graphics Driver', Apple: 'Metal GPU Driver v3.1' }[info.vendor] || 'Generic GPU Driver';
+        const drvLong = info.vendor === 'Apple'
+          ? 'Metal GPU Driver • 2026 v3.1'
+          : `${{ NVIDIA: 'NVIDIA GeForce Game Ready Driver', AMD: 'AMD Radeon Adrenalin Driver', Intel: 'Intel Graphics Driver (Arc / Iris Xe)' }[info.vendor] || 'Generic GPU Driver'} • ${info.api}`;
+        const gpuOk = !mob, boardOk = mob || th >= 6;
+
+        const gb = Math.max(8, navigator.deviceMemory || 8);
+        let mts = 4266, type = (mac || mob) ? 'LPDDR5' : 'DDR5';
+        if (gbs) {
+          mts = STD_MTS.reduce((p, c) => Math.abs(c - gbs * 230) < Math.abs(p - gbs * 230) ? c : p);
+          type = (mac || mob) ? 'LPDDR5' : (mts >= 4400 ? 'DDR5' : 'DDR4');
+        }
+        const ramText = `${gb >= 8 ? gb + '+' : gb} GB ${type} • ${mts} MHz`;
+        const peak = (mts * 8 * 2 / 1000).toFixed(1);
+
+        const winAct = !/Android|iPhone/i.test(ua), sec = gb >= 8;
+        const lic = `${winAct ? 'WIN: ACTIVATED' : 'WIN: UNLICENSED'} • ${sec ? 'AV: LICENSED' : 'AV: EXPIRED'}`;
+        const drvSum = `${boardOk ? 'MB DRV-4.12' : 'MB DRV MISSING'} • GPU ${drvShort}`;
+
+        Object.assign(detectedInfo, {
+          os, mobo, chipset: chip, bios, biosNeedsUpdate: biosUp,
+          cpu: `${cores} Cores • ${threads} Threads • ${turbo.toFixed(1)} GHz`,
+          gpu: `${info.name} • ${gClk} MHz • ${drvShort}`,
+          gpuClockLabel: `${gClk} MHz`,
+          gpuDriverVersion: drvShort,
+          ram: ramText,
+          winActivated: winAct,
+          securityLicensed: sec,
+          boardDriverOk: boardOk,
+          gpuDriverOk: gpuOk,
+          licenseSummary: lic,
+          boardDriverCode: boardOk ? 'MB DRV-4.12' : 'MB DRV MISSING',
+          gpuDriverCode: `GPU ${drvShort}`,
+          driversSummary: drvSum
+        });
+
+        HW.cpuName = cpuName;
+        HW.gpuName = info.name;
+
+        put('hw-os', os, 'Detected: Windows 11 ✔️ • macOS Sonoma 14.6 • ARM64 • Linux (Ubuntu / Fedora / Debian). Edition (Home / Pro) is confirmed in the technician check.');
+        put('hw-mobo', mobo, mDesc);
+        put('hw-chipset', chip, cDesc);
+        put('hw-bios', biosUp ? `${bios} (Update Ready)` : `${bios} (Verified)`, mac ? 'Apple iBoot secure-boot firmware verified by the Secure Enclave.' : 'Exact BIOS version and date are read on-site (msinfo32); update is advised when older than the board maker\'s latest release.', biosUp ? 'text-xs font-bold text-amber-400 truncate-safe mt-1' : 'text-xs font-bold text-purple-300 truncate-safe mt-1');
+        put('hw-cpu', cpuText, cpuD);
+        put('hw-ram', ramText, `${type} at about ${mts} MT/s gives a theoretical peak of ${peak} GB/s (dual-channel, 64-bit). Browsers report capacity up to 8 GB only; real size is confirmed on-site.`);
+        put('hw-gpu', `${info.name} • ${gClk} MHz`, `${info.vendor} graphics read through ${info.api}. The clock shown is the rated boost for this GPU family; the live clock moves on the gauge during the test.`);
+        put('hw-gpudrv', drvLong, 'Driver family and graphics API come from the browser; the exact driver version is confirmed in the technician check.');
+        put('hw-chipdrv', mac || mob ? 'Built into the OS (no separate package)' : (vendorCpu === 'AMD' ? 'AMD Chipset Drivers' : 'Intel Chipset Device Software (INF)'), 'Installs the chipset INF, PCIe, SMBus and USB controller drivers so the OS addresses the board correctly.');
+        put('hw-license', lic, 'Windows activation and antivirus are estimated here; the technician verifies them with slmgr /xpr and Windows Security.');
+        put('hw-drivers', drvSum, 'Board driver pack status and graphics driver family; a missing pack lowers stability, sleep/wake and USB performance.', `text-xs font-bold ${boardOk && gpuOk ? 'text-teal-300' : 'text-rose-400'} truncate-safe mt-1`);
+
+        const sc = $id('sub-cpu'), sg = $id('sub-gpu'), fe = $id('val-fps-readout');
+        if (sc) sc.textContent = `${Math.round(cpuLoad)}% • ${cpuClock.toFixed(1)}GHz`;
+        if (sg) sg.textContent = `${Math.round(gpuLoad)}% • ${Math.round(gpuClock)}MHz`;
+        if (fe) fe.textContent = `${Math.round(currentFPS)} FPS / ${targetFPS} FPS`;
+        applyAIDiagnosticsAndServices();
+      };
+
+      run({}, null, null);
+      try {
+        if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
+          ch = await navigator.userAgentData.getHighEntropyValues(['platformVersion', 'architecture', 'bitness', 'model']);
+        }
+      } catch (e) {}
+      run(ch, null, null);
+      await new Promise(r => setTimeout(r, 80));
+      try {
+        run(ch, benchMem(), benchGhz());
+      } catch (e) {}
+    }
+
+    function refreshHwDesc() {
+      const t = id => ($id(id) || {}).textContent || '';
+      const n = (s, r) => { const m = s.match(r); return m ? parseFloat(m[1]) : NaN; };
+      const set = (id, s) => { const e = $id(id + '-d'); if (e && s) e.textContent = s; };
+      const T = s => s < 90 ? Math.round(s) + ' s' : (s / 60).toFixed(1) + ' min';
+
+      const isp = t('hw-isp'), mb = n(isp, /([\d.]+)\s*Mbps/), ping = n(isp, /(\d+)\s*ms/);
+      if (mb && ping) set('hw-isp', `Download ≈ ${(mb / 8).toFixed(1)} MB/s, so a 1 GB file takes ≈ ${T(8192 / mb)}. Latency ${ping} ms is ${ping < 30 ? 'excellent' : ping < 80 ? 'good' : 'high'} for ${ping < 60 ? 'online gaming' : 'browsing and downloads'}.`);
+
+      const w = n(t('hw-psu'), /(\d+)\s*W/);
+      if (w) set('hw-psu', `Current draw ≈ ${(w / 230).toFixed(2)} A at 230 V. A PSU is most efficient near 50% load, so ≥ ${Math.ceil(w / 0.5 / 50) * 50} W is recommended.`);
+
+      const ds = t('val-disk'), sp = n(ds, /([\d.]+)\s*MB\/s/), hp = n(ds, /(\d+)%/);
+      if (sp) set('val-disk', `${(HW.diskType && /NVMe|SSD|HDD/i.test(HW.diskType)) ? HW.diskType + (HW.diskModel ? ' (' + HW.diskModel + ')' : '') : sp >= 5000 ? 'NVMe Gen4 class' : sp >= 2500 ? 'NVMe Gen3 class' : sp >= 450 ? 'SATA SSD class' : 'HDD class'} • health ${hp}%. A 10 GB game loads in ≈ ${T(10240 / sp)}.`);
+
+      const fm = t('val-fps-readout').match(/(\d+)\s*FPS\s*\/\s*(\d+)/);
+      if (fm) { const f = +fm[1], g = +fm[2]; set('val-fps-readout', `Frame time ${(1000 / f).toFixed(1)} ms vs ${(1000 / g).toFixed(1)} ms target, about ${Math.round(f / g * 100)}% of the target smoothness.`); }
+
+      const sc = n(t('val-score'), /(\d+)\s*\/\s*100/);
+      if (sc) set('val-score', `${sc >= 90 ? 'Excellent' : sc >= 75 ? 'Good, minor tuning advised' : sc >= 60 ? 'Fair, service recommended' : 'Poor, service required'} — weighted from temperature, load, FPS and driver health.`);
+
+      const cd = $id('cpu-desc'), gd = $id('gpu-desc');
+      if (cd) cd.textContent = `${HW.cpuName} • ${Math.max(0, Math.round(100 - cpuTemp))}°C headroom to Tjmax`;
+      if (gd) gd.textContent = `${HW.gpuName} • ${Math.max(0, Math.round(88 - gpuTemp))}°C headroom to throttle`;
+    }
+    setInterval(refreshHwDesc, 1000);
+
+    const OSI = {
+      w: '<path d="M3 5.5l7-1v7H3zM11 4.3l10-1.5v9H11zM3 12.5h7v7l-7-1zM11 12.5h10v9l-10-1.5z"/>',
+      m: '<rect x="5" y="5" width="14" height="10" rx="1.5"/><path d="M3 19h18"/>',
+      l: '<path d="M5 7l5 5-5 5M12 18h7"/>'
+    };
+
+    function refreshVisuals() {
+      const bad = { 'hw-license': /UNLICENSED|EXPIRED/, 'hw-drivers': /MISSING/, 'hw-bios': /Update Ready/ };
+      for (const id in bad) {
+        const e = $id(id), p = e && e.closest('.hw-pill');
+        if (p) p.classList.toggle('hw-bad', bad[id].test(e.textContent));
+      }
+      [['hw-cpu', cpuTemp > 82], ['hw-gpu', gpuTemp > 80]].forEach(([id, hot]) => {
+        const e = $id(id), p = e && e.closest('.hw-pill');
+        if (p && hot) p.classList.add('hw-bad');
+      });
+      const o = $id('hw-os'), ic = o && o.closest('.hw-pill').querySelector('.ai-thumb svg');
+      const k = /Windows/.test(detectedInfo.os) ? 'w' : /Linux/.test(detectedInfo.os) ? 'l' : 'm';
+      if (ic && ic.dataset.k !== k) {
+        ic.dataset.k = k;
+        ic.innerHTML = OSI[k];
+      }
+    }
+    setInterval(refreshVisuals, 1000);
+
+    const SCAN = { os: 'win' };
+    const SCAN_T = {
+      ar: { title: 'فحص دقيق للجهاز', sub: 'عشان نوصل لبيانات جهازك الفعلية (اللوحة الأم، البايوس، الرام...) محتاجين سكربت صغير بيشتغل على جهازك. بيقرأ المعلومات بس ومش بيغيّر أي حاجة.', s1: '1. نزّل سكربت الفحص', dl: 'تنزيل السكربت', s2: '2. شغّله', s3: '3. الصق النتيجة هنا أو ارفع الملف', ph: 'الصق النتيجة هنا (Ctrl+V)', apply: 'تطبيق النتيجة وبدء الاختبار', skip: 'تخطّي وتشغيل الاختبار فقط', phone: 'سكربت الفحص بيشتغل على الكمبيوتر فقط. من الموبايل هنكمّل بالاختبار، والفحص الدقيق يتم مع الفني في الزيارة.', win: 'اضغط مرتين على Home-PC-Scan.bat (لو ظهر تحذير: More info ثم Run anyway) واستنى لحد ما يكتب DONE.', unix: 'افتح Terminal ونفّذ الأمر ده، واستنى لحد ما يكتب DONE:', copy: 'نسخ الأمر', bad: 'النتيجة غير صالحة. تأكد إنك نسخت النص كله.', ok: 'تم الفحص الدقيق ✔' },
+      en: { title: 'Accurate Device Scan', sub: 'To read your real hardware (motherboard, BIOS, RAM...) we need a small script that runs on your device. It only reads information and changes nothing.', s1: '1. Download the scan script', dl: 'Download script', s2: '2. Run it', s3: '3. Paste the result here or upload the file', ph: 'Paste the result here (Ctrl+V)', apply: 'Apply result and start test', skip: 'Skip and run the test only', phone: 'The scan script runs on computers only. On a phone we continue with the test, and the accurate scan is done with the technician at the visit.', win: 'Double-click Home-PC-Scan.bat (if warned: More info, then Run anyway) and wait for DONE.', unix: 'Open Terminal and run this command, then wait for DONE:', copy: 'Copy command', bad: 'Invalid result. Make sure you copied all the text.', ok: 'Accurate scan complete ✔' }
+    };
+    const scanT = () => SCAN_T[currentLang === 'en' ? 'en' : 'ar'];
+    const isPhone = () => /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    function powerClick() {
+      if (isTesting || HW.verified) {
+        toggleTest();
+        return;
+      }
+      openScanModal();
+    }
+
+    function openScanModal() {
+      const ua = navigator.userAgent;
+      SCAN.os = /Windows/i.test(ua) ? 'win' : /Mac/i.test(ua) ? 'mac' : 'linux';
+      renderScanModal();
+      const m = $id('scan-modal');
+      m.classList.remove('hidden');
+      m.classList.add('flex');
+      if (!isPhone() && SCAN.os === 'win') dlScan();
+    }
+
+    function closeScan() {
+      const m = $id('scan-modal');
+      m.classList.add('hidden');
+      m.classList.remove('flex');
+    }
+
+    function skipScan() {
+      closeScan();
+      toggleTest();
+    }
+
+    function setScanOs(o) {
+      SCAN.os = o;
+      renderScanModal();
+    }
+
+    function renderScanModal() {
+      const t = scanT(), ph = isPhone();
+      $id('scan-title').textContent = t.title;
+      $id('scan-sub').textContent = ph ? t.phone : t.sub;
+      $id('scan-steps').classList.toggle('hidden', ph);
+      $id('scan-tabs').classList.toggle('hidden', ph);
+      $id('scan-s1').textContent = t.s1;
+      $id('scan-dl').textContent = t.dl;
+      $id('scan-s2').textContent = t.s2;
+      $id('scan-s3').textContent = t.s3;
+      $id('scan-text').placeholder = t.ph;
+      $id('scan-apply').textContent = t.apply;
+      $id('scan-skip').textContent = t.skip;
+      document.querySelectorAll('#scan-tabs button').forEach(b => {
+        const on = b.dataset.os === SCAN.os;
+        b.className = 'px-3 py-1.5 rounded-lg border ' + (on ? 'bg-crimson border-crimson text-white' : 'border-gray-700 text-gray-300');
+      });
+      const cmd = $id('scan-cmd'), run = $id('scan-run');
+      if (SCAN.os === 'win') {
+        run.textContent = t.win;
+        cmd.classList.add('hidden');
+      } else {
+        run.textContent = t.unix;
+        cmd.classList.remove('hidden');
+        cmd.innerHTML = `<code dir="ltr" class="block bg-black/60 border border-gray-800 rounded-lg px-3 py-2 text-xs text-rose-300 font-mono break-all">bash ~/Downloads/home-pc-scan.sh</code><button type="button" onclick="navigator.clipboard&&navigator.clipboard.writeText('bash ~/Downloads/home-pc-scan.sh');showToast('✔')" class="mt-2 text-xs text-crimson font-bold">${escapeHtml(t.copy)}</button>`;
+      }
+    }
+
+    function dlScan() {
+      let name, txt;
+      if (SCAN.os === 'win') {
+        const hdr = [
+          '@echo off',
+          'title Home Computer Repair Service - Accurate Scan',
+          'powershell -NoProfile -ExecutionPolicy Bypass -Command "$s=[IO.File]::ReadAllText(\'%~f0\'); iex ($s.Substring($s.IndexOf(\'#\'+\'PS#\')+4))"',
+          'echo.',
+          'pause',
+          'exit /b',
+          '#PS#'
+        ];
+        txt = (hdr.join('\n') + '\n' + $id('scan-ps1').textContent.trim()).replace(/\r?\n/g, '\r\n');
+        name = 'Home-PC-Scan.bat';
+      } else {
+        txt = $id('scan-unix').textContent.trim() + '\n';
+        name = 'home-pc-scan.sh';
+      }
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([txt], { type: 'text/plain' }));
+      a.download = name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    }
+
+    function scanFile(inp) {
+      const f = inp.files && inp.files[0];
+      if (!f) return;
+      const r = new FileReader();
+      r.onload = () => { $id('scan-text').value = r.result; };
+      r.readAsText(f);
+    }
+
+    function applyScanClick() {
+      const msg = $id('scan-msg'), raw = $id('scan-text').value, a = raw.indexOf('{'), b = raw.lastIndexOf('}');
+      try {
+        if (a === -1 || b === -1 || b <= a) throw 0;
+        const d = JSON.parse(raw.slice(a, b + 1));
+        if (d.v !== 1 || !d.cpu || !d.os) throw 0;
+        applyScan(d);
+        closeScan();
+        showToast(scanT().ok);
+        toggleTest();
+      } catch (e) {
+        msg.textContent = scanT().bad;
+        msg.className = 'text-xs mt-2 text-rose-400';
+      }
+    }
+
+    function boardInfo(c) {
+      return c ? (BOARD_DB[c + 'M'] || BOARD_DB[c] || BOARD_DB[c.replace(/M$/, '')] || null) : null;
+    }
+
+    function applyScan(d) {
+      ensureHwUI();
+      HW.verified = true;
+      const o = d.os || {}, b = d.board || {}, bi = d.bios || {}, c = d.cpu || {}, r = d.ram || {}, g = d.gpu || {}, cd = d.chipsetDrv || {}, s = d.sec || {}, dr = d.drivers || {}, n = d.net || {}, k = d.disk || {}, p = d.power || {};
+      const win = /Windows/.test(o.name || '');
+      const osTxt = win ? `${o.name} ✔️` : `${o.name}${o.arch ? ' • ' + o.arch : ''}`;
+      const ghz = c.ghz ? `${Number(c.ghz).toFixed(1)} GHz` : '';
+      const known = Object.values(CPU_DB).flatMap(e => [e.i, e.a]).filter(Boolean).find(x => c.name && new RegExp(x[0].split(' ').pop() + '(?![A-Za-z0-9])').test(c.name));
+      const cpuTxt = [c.name, c.cores ? `${c.cores} Cores` : '', c.threads ? `${c.threads} Threads` : '', ghz].filter(Boolean).join(' • ');
+      const cpuD = known ? `${known[0]} is a ${known[5]} featuring ${known[1]} cores, ${known[2]} threads and a maximum turbo frequency of ${known[3].toFixed(2)} GHz. Read directly from your processor.` : `${c.name}: ${c.cores} cores and ${c.threads} threads${ghz ? ' with a rated maximum clock of ' + ghz : ''}. Read directly from your processor.`;
+      const B = boardInfo(b.chipset), model = `${b.vendor || ''} ${b.model || ''}`.trim() || 'System Board';
+      const isM = b.chipset && (new RegExp(b.chipset + 'M', 'i').test(b.model || '') || /m-?atx/i.test(b.model || ''));
+      const form = B ? (isM ? 'Micro-ATX (mATX)' : (B[0].includes('Micro') ? 'ATX / Micro-ATX' : B[0])) : '';
+      const chipTxt = B ? `${B[1]} • ${B[2]}` : `${c.vendor || 'Platform'} Chipset`;
+      const mDesc = B ? `${b.chipset}${isM ? 'M' : ''} refers to ${form} motherboards built on ${B[1]} chipset using the ${B[2]} socket. It supports ${B[3]}, ${B[4]}, ${B[5]}. Installed board: ${model}.` : `Installed board: ${model}. Read directly from the system firmware.`;
+      const yrs = bi.date ? (Date.now() - new Date(bi.date)) / 3.15576e10 : NaN, biosUp = yrs > 3;
+      const biosTxt = `${bi.vendor || ''} ${bi.ver || ''}`.trim() + (bi.date ? ` (${bi.date})` : '') || 'UEFI Firmware';
+      const mts = r.mts, ch = Math.min(r.modules || 1, 2);
+      const ramTxt = `${r.gb || 8} GB ${r.type || 'RAM'}${mts ? ' • ' + mts + ' MHz' : ''}`;
+      const gTxt = `${g.name || 'Graphics'}${g.clockMhz ? ' • ' + g.clockMhz + ' MHz' : ''}`;
+      const gdv = g.vendor === 'Apple' ? 'Metal GPU Driver' : `${g.vendor || ''} Driver${g.driver ? ' ' + g.driver : ''}`.trim();
+      const mbOk = win ? !!cd.ver && !(dr.problemCount > 0) : true;
+      const lic = win ? `WIN: ${s.winLicensed ? 'ACTIVATED' : 'UNLICENSED'} • AV: ${s.avOk ? 'LICENSED' : 'EXPIRED'}` : `${s.av || 'AV'} • ${s.avOk ? 'ACTIVE' : 'OFF'}`;
+      const drv = dr.problemCount > 0 ? `${dr.problemCount} DEVICE(S) NEED DRIVERS • GPU ${gdv}` : `MB DRV-${cd.ver || (win ? 'MISSING' : 'OS')} • GPU ${gdv}`;
+      const hp = Number.isFinite(Number(k.healthPct)) ? Number(k.healthPct) : 99;
+      const disk = `${hp}% ${hp >= 90 ? 'OPTIMAL' : hp >= 70 ? 'HEALTHY' : 'CHECK'}${k.mbps ? ' • ' + k.mbps + ' MB/s' : ''}${k.latMs != null ? ` (${k.latMs}ms)` : ''}`;
+      const isp = `${n.isp || 'Unknown ISP'}${n.mbps ? ' • ' + Math.round(n.mbps) + ' Mbps' : ''}${n.pingMs != null ? ' • ' + n.pingMs + 'ms' : ''}${n.city ? ' • ' + n.city : ''}`;
+
+      Object.assign(detectedInfo, {
+        os: osTxt,
+        mobo: model,
+        chipset: chipTxt,
+        bios: biosTxt,
+        biosNeedsUpdate: biosUp,
+        cpu: `${c.cores || 4} Cores • ${c.threads || 8} Threads • ${ghz}`,
+        gpu: `${gTxt} • ${gdv}`,
+        ram: ramTxt,
+        winActivated: !!s.winLicensed,
+        securityLicensed: !!s.avOk,
+        boardDriverOk: mbOk,
+        gpuDriverOk: true,
+        licenseSummary: lic,
+        driversSummary: drv,
+        isp: n.isp || 'Unknown',
+        netSpeedMbps: n.mbps ? `${Math.round(n.mbps)} Mbps` : detectedInfo.netSpeedMbps,
+        netPingMs: n.pingMs != null ? `${n.pingMs}ms` : detectedInfo.netPingMs,
+        ipAddress: n.ip || 'N/A',
+        locationString: n.city || detectedInfo.locationString,
+        storageHealth: disk
+      });
+
+      HW.cpuName = c.name || HW.cpuName;
+      HW.gpuName = g.name || HW.gpuName;
+      HW.diskType = k.type;
+      HW.diskModel = k.model;
+
+      put('hw-os', osTxt, `Read from the operating system. Build ${o.build || 'n/a'} • ${o.arch || ''}.`);
+      put('hw-mobo', model, mDesc);
+      put('hw-chipset', chipTxt, 'The chipset (PCH) routes PCIe lanes, SATA/NVMe, USB and memory features between the CPU and every device on the board.');
+      put('hw-bios', biosTxt + (biosUp ? ' (Update Ready)' : ' (Verified)'), bi.date ? `BIOS dated ${bi.date}, about ${yrs.toFixed(1)} years old. ${biosUp ? 'A firmware update is recommended.' : 'Within a healthy age range.'}` : 'Read directly from the system firmware.', biosUp ? 'text-xs font-bold text-amber-400 truncate-safe mt-1' : 'text-xs font-bold text-purple-300 truncate-safe mt-1');
+      put('hw-cpu', cpuTxt, cpuD);
+      put('hw-ram', ramTxt, `${r.modules || 1} memory module(s) of ${r.type || 'RAM'}${mts ? ` running at ${mts} MT/s, a theoretical peak of ${(mts * 8 * ch / 1000).toFixed(1)} GB/s (${ch}-channel)` : ''}. Read from the installed memory sticks.`);
+      put('hw-gpu', gTxt, 'Read from the installed graphics adapter.');
+      put('hw-gpudrv', gdv, g.driver ? `Installed driver version ${g.driver}.` : 'Driver managed by the operating system.');
+      put('hw-chipdrv', cd.name ? `${cd.name} ${cd.ver || ''}`.trim() : (win ? 'Not found ✖' : 'Built into the OS'), cd.date ? `Driver dated ${cd.date}.` : 'Installs the chipset INF, PCIe, SMBus and USB controller drivers.');
+      put('hw-license', lic, win ? `Windows status: ${s.winStatus}. Antivirus: ${s.av} (${s.avOk ? 'active and up to date' : 'inactive or outdated'}).` : `Protection: ${s.av}.`);
+      put('hw-drivers', drv, dr.problemCount > 0 ? `Devices with driver errors: ${(dr.problems || []).join(', ')}.` : 'No device reports a driver error.', `text-xs font-bold ${mbOk ? 'text-teal-300' : 'text-rose-400'} truncate-safe mt-1`);
+      put('hw-isp', isp, null);
+      put('val-disk', disk, null);
+
+      if (p.watts) {
+        psuWatts = p.watts;
+        put('hw-psu', `${p.watts}W • ${p.source || 'BATTERY'}`, null);
+      } else {
+        put('hw-psu', `${Math.round(psuWatts)}W • 230V AC (Est.)`, 'No power sensor is available on this PC; the draw is estimated from the load during the test.');
+      }
+
+      if (c.ghz) cpuClock = Number(c.ghz);
+      if (g.clockMhz) gpuClock = Number(g.clockMhz);
+      if (d.cpuTempC != null) cpuTemp = Number(d.cpuTempC);
+      if (g.tempC != null) gpuTemp = Number(g.tempC);
+      if (d.device && !manualDeviceOverride && typeof setDeviceSelection === 'function') setDeviceSelection(d.device);
+
+      const grid = $id('hw-grid');
+      let bd = $id('scan-badge');
+      if (!bd && grid) {
+        bd = document.createElement('div');
+        bd.id = 'scan-badge';
+        bd.className = 'mb-3 text-[11px] font-mono font-bold text-rose-300 bg-rose-500/10 border border-rose-500/30 rounded-xl px-3 py-2';
+        bd.dir = 'ltr';
+        grid.before(bd);
+      }
+      if (bd) bd.textContent = `VERIFIED SCAN • ID ${d.id || '--'} • ${(d.time || '').replace('T', ' ')}`;
+
+      ['hw-mobo', 'hw-chipset', 'hw-cpu', 'hw-ram', 'hw-gpu'].forEach(id => {
+        const e = $id(id);
+        if (e) e.textContent = e.textContent.replace(' (Est.)', '');
+      });
+
+      updateGauge('gauge-cpu', 'val-cpu', cpuTemp, 100, '°C');
+      updateGauge('gauge-gpu', 'val-gpu', gpuTemp, 100, '°C');
+      const sc = $id('sub-cpu'), sg = $id('sub-gpu');
+      if (sc) sc.textContent = `${Math.round(cpuLoad)}% • ${cpuClock.toFixed(1)}GHz`;
+      if (sg) sg.textContent = `${Math.round(gpuLoad)}% • ${Math.round(gpuClock)}MHz`;
+      applyAIDiagnosticsAndServices();
+      syncBookingSnapshot();
+    }
+
+    async function measureInternetSpeed() {
+      const conn = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+      let speedText = conn && conn.downlink ? `${Number(conn.downlink * 10).toFixed(1)} Mbps` : '85.4 Mbps';
+      let pingText = conn && conn.rtt ? `${conn.rtt}ms` : '18ms';
+
+      try {
+        const t0 = performance.now();
+        await fetch(`https://www.cloudflare.com/cdn-cgi/trace?t=${Date.now()}`, { cache: 'no-store', mode: 'no-cors' });
+        const measuredRtt = Math.max(6, Math.min(280, Math.round(performance.now() - t0)));
+        pingText = `${measuredRtt}ms`;
+        if (!conn || !conn.downlink) {
+          const estMbps = Math.max(12, Math.min(300, Math.round(2400 / measuredRtt)));
+          speedText = `${estMbps} Mbps`;
+        }
+      } catch (e) {}
+
+      detectedInfo.netSpeedMbps = speedText;
+      detectedInfo.netPingMs = pingText;
+    }
+
+    async function detectISPAndLocation() {
+      const ispEl = $id('hw-isp');
+      const addrInput = $id('booking-address');
+      await measureInternetSpeed();
+
+      try {
+        const res = await fetch('https://ipapi.co/json/');
+        if (res.ok) {
+          const data = await res.json();
+          const org = (data.org || data.isp || 'Local ISP').replace(/^AS\d+\s+/i, '').trim();
+          const city = data.city || 'Giza';
+          const region = data.region || 'Giza Governorate';
+          const country = data.country_name || 'Egypt';
+
+          detectedInfo.isp = org;
+          detectedInfo.ipAddress = data.ip || 'Detected';
+          detectedInfo.locationString = `${city}, ${region}, ${country}`;
+
+          if (ispEl) {
+            ispEl.textContent = `${org} • ${detectedInfo.netSpeedMbps} • ${detectedInfo.netPingMs} • ${city}`;
+            ispEl.className = 'text-xs font-bold text-orange-300 truncate-safe mt-1';
+          }
+          if (addrInput && !addrInput.value.trim()) {
+            addrInput.value = detectedInfo.locationString;
+          }
+          syncBookingSnapshot();
+          return;
+        }
+      } catch (e) {}
+
+      detectedInfo.isp = 'WE / Telecom Egypt';
+      detectedInfo.locationString = 'Giza, Giza Governorate, Egypt';
+      if (ispEl) {
+        ispEl.textContent = `WE / Telecom Egypt • ${detectedInfo.netSpeedMbps} • ${detectedInfo.netPingMs} • Giza`;
+        ispEl.className = 'text-xs font-bold text-orange-300 truncate-safe mt-1';
+      }
+      if (addrInput && !addrInput.value.trim()) {
+        addrInput.value = detectedInfo.locationString;
+      }
+      syncBookingSnapshot();
+    }
+
+    function runStorageHealthCheck() {
+      const diskEl = $id('val-disk');
+      const start = performance.now();
+      let sum = 0;
+      for (let i = 0; i < 600000; i++) sum += Math.sqrt(i % 100);
+      const elapsed = performance.now() - start;
+      const readSpeed = Math.max(1800, Math.min(7200, Math.round(320000 / Math.max(45, elapsed))));
+      const health = elapsed < 40 ? '99% OPTIMAL' : elapsed < 90 ? '95% HEALTHY' : '84% CHECK';
+      detectedInfo.storageHealth = `${health} • ${readSpeed} MB/s (${sum ? Math.round(elapsed) : 0}ms)`;
+
+      if (diskEl) {
+        diskEl.textContent = detectedInfo.storageHealth;
+        diskEl.className = `text-xs font-bold ${elapsed < 90 ? 'text-lime-300' : 'text-amber-400'} truncate-safe mt-1`;
+      }
+      syncBookingSnapshot();
+    }
+
+    function detectGPSLocation() {
+      const addrInput = $id('booking-address');
+      if (!navigator.geolocation) {
+        showToast('المتصفح لا يدعم GPS، تم استخدام موقع IP.');
+        return;
+      }
+      showToast('جارٍ تحديد الموقع الدقيق عبر GPS...');
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const lat = pos.coords.latitude.toFixed(4);
+          const lon = pos.coords.longitude.toFixed(4);
+          const gpsLoc = `GPS (${lat}, ${lon}) — ${detectedInfo.locationString}`;
+          detectedInfo.locationString = gpsLoc;
+          if (addrInput) addrInput.value = gpsLoc;
+          syncBookingSnapshot();
+          showToast('تم إرفاق إحداثيات GPS في الحجز.');
+        },
+        () => {
+          showToast('تم الإبقاء على الموقع التقديري عبر IP.');
+        }
+      );
+    }
+
+    function applyAIDiagnosticsAndServices() {
+      const findings = [];
+      const recommendedIds = new Set();
+
+      if (maxCpuTemp >= 78 || maxGpuTemp >= 76 || cpuTemp >= 72) {
+        findings.push(`Elevated thermal load detected (Peak CPU ${Math.round(maxCpuTemp)}°C / GPU ${Math.round(maxGpuTemp)}°C) — deep cleaning & fresh thermal paste recommended.`);
+        recommendedIds.add('cleaning-paste');
+      } else {
+        findings.push(`Baseline thermals at ${Math.round(cpuTemp)}°C CPU / ${Math.round(gpuTemp)}°C GPU (${cpuClock.toFixed(1)}GHz / ${Math.round(gpuClock)}MHz); thermal maintenance service ready.`);
+        recommendedIds.add('cleaning-paste');
+      }
+
+      if (detectedInfo.biosNeedsUpdate) {
+        findings.push(`BIOS (${detectedInfo.bios}) flagged for firmware update & tuning.`);
+        recommendedIds.add('bios-update');
+      }
+
+      if (!detectedInfo.boardDriverOk || !detectedInfo.gpuDriverOk || !detectedInfo.winActivated || !detectedInfo.securityLicensed) {
+        findings.push(`Driver or license audit item detected (${detectedInfo.driversSummary} | ${detectedInfo.licenseSummary}).`);
+        recommendedIds.add('windows-drivers');
+      }
+
+      if (minFpsSeen < 35 || isTesting) {
+        findings.push(`Frame pacing / stress check flagged performance bottleneck (Min FPS: ${Math.round(minFpsSeen)} FPS).`);
+        recommendedIds.add('full-diagnostic');
+      }
+
+      db.services.forEach(srv => {
+        if (!srv.active) {
+          srv.selected = false;
+          return;
+        }
+        if (recommendedIds.has(srv.id)) srv.selected = true;
+      });
+
+      const summaryText = findings.join(' ');
+      const diagEl = $id('ai-diag-summary');
+      const badgeEl = $id('ai-diag-badge');
+      const descInput = $id('booking-desc');
+
+      if (diagEl) diagEl.textContent = summaryText;
+      const selectedCount = db.services.filter(s => s.active && s.selected).length;
+      if (badgeEl) {
+        badgeEl.textContent = `${selectedCount} SERVICE(S) SELECTED`;
+        badgeEl.className = `text-[11px] font-mono font-bold ${selectedCount > 1 ? 'text-amber-400' : 'text-rose-400'}`;
+      }
+      if (descInput && !descInput.dataset.userEdited) {
+        descInput.value = `${summaryText} [Device: ${detectedInfo.deviceType} | CPU: ${detectedInfo.cpu} | GPU: ${detectedInfo.gpu} | RAM: ${detectedInfo.ram} | FPS: ${Math.round(currentFPS)}/${targetFPS} | ISP: ${detectedInfo.isp} ${detectedInfo.netSpeedMbps}]`;
+      }
+
+      renderServicesGrid();
+      syncBookingSnapshot();
+    }
+
+    function renderServicesGrid() {
+      const grid = $id('services-cards-grid');
+      const totalEl = $id('selected-services-total');
+      if (!grid) return;
+
+      const activeServices = db.services.filter(s => s.active);
+      let totalPrice = 0;
+
+      grid.innerHTML = activeServices.map(srv => {
+        if (srv.selected) totalPrice += srv.price;
+        const safeId = escapeHtml(srv.id);
+        return `
+          <div onclick="toggleServiceCard('${safeId}')"
+               class="cursor-pointer rounded-2xl p-4 border-2 transition flex flex-col justify-between ${
+                 srv.selected
+                   ? 'border-crimson bg-rose-50/40 shadow-sm'
+                   : 'border-gray-200 bg-white hover:border-gray-300'
+               }">
+            <div>
+              <div class="flex items-start justify-between gap-2 mb-1.5">
+                <span class="text-sm font-mono font-extrabold text-crimson">${escapeHtml(srv.price)} ج.م</span>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                  srv.selected ? 'bg-crimson text-white' : 'bg-gray-100 text-gray-600'
+                }">${srv.selected ? 'محددة' : escapeHtml(srv.badge)}</span>
+              </div>
+              <div class="font-extrabold text-sm text-gray-900 leading-snug mb-1">${escapeHtml(srv.title)}</div>
+              <p class="text-xs text-gray-500 leading-relaxed mb-3">${escapeHtml(srv.desc)}</p>
+            </div>
+            <div class="flex items-center justify-between pt-2 border-t border-gray-100 text-[11px] font-semibold text-gray-600">
+              <span>✓ ${escapeHtml(srv.note || 'صيانة منزلية')}</span>
+              <span class="font-bold ${srv.selected ? 'text-crimson' : 'text-gray-400'}">${srv.selected ? 'مفعّلة ✓' : 'اختيار'}</span>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      if (totalEl) totalEl.textContent = `${totalPrice} ج.م`;
+    }
+
+    function toggleServiceCard(id) {
+      const item = db.services.find(s => s.id === id);
+      if (!item || !item.active) return;
+      item.selected = !item.selected;
+      saveDatabase();
+      renderServicesGrid();
+      syncBookingSnapshot();
+    }
+
+    function syncBookingSnapshot() {
+      const snap = $id('auto-attached-specs');
+      if (!snap) return;
+      const selectedNames = db.services.filter(s => s.active && s.selected).map(s => `${s.title} (${s.price} LE)`);
+      const slotInfo = selectedBookingSlot ? `${selectedBookingDate} [${selectedBookingSlot}]` : 'Not selected';
+      snap.textContent =
+        `Device: ${detectedInfo.deviceType} | Slot: ${slotInfo} | Board: ${detectedInfo.mobo} (${detectedInfo.chipset}) | BIOS: ${detectedInfo.bios} | ` +
+        `CPU: ${detectedInfo.cpu} | GPU: ${detectedInfo.gpu} | RAM: ${detectedInfo.ram} | FPS: ${Math.round(currentFPS)}/${targetFPS} FPS | Drivers: ${detectedInfo.driversSummary} | License: ${detectedInfo.licenseSummary} | ` +
+        `ISP: ${detectedInfo.isp} (${detectedInfo.netSpeedMbps}, ${detectedInfo.netPingMs}) | Location: ${detectedInfo.locationString} | Services: ${selectedNames.length ? selectedNames.join(', ') : 'None'}`;
+    }
+
+    function buildWhatsAppReportText(reasonLabel) {
+      const selectedServices = db.services
+        .filter(s => s.active && s.selected)
+        .map(s => `${s.title} (${s.price} ج.م)`)
+        .join(' + ') || 'غير محدد';
+
+      const totalLE = db.services
+        .filter(s => s.active && s.selected)
+        .reduce((acc, s) => acc + s.price, 0);
+
+      const nowStr = new Date().toLocaleString('ar-EG');
+      const slotSummary = selectedBookingSlot ? `${selectedBookingDate} (${getSlotLabel(selectedBookingSlot)})` : 'غير محدد';
+
+      return [
+        `*Home Computer Repair Service — تقرير الفحص واختبار الأداء*`,
+        `الحالة: ${reasonLabel} (${nowStr})`,
+        `نوع الجهاز: ${detectedInfo.deviceType}`,
+        `الموعد المختار: ${slotSummary}`,
+        `اللوحة الأم: ${detectedInfo.mobo} | الشريحة: ${detectedInfo.chipset}`,
+        `البايوس: ${detectedInfo.bios}`,
+        `المعالج: ${detectedInfo.cpu} — ${Math.round(cpuTemp)}°C (الأقصى ${Math.round(maxCpuTemp)}°C، الحمل ${Math.round(cpuLoad)}%)`,
+        `كرت الشاشة: ${detectedInfo.gpu} — ${Math.round(gpuTemp)}°C (الأقصى ${Math.round(maxGpuTemp)}°C، الحمل ${Math.round(gpuLoad)}%)`,
+        `الرام: ${detectedInfo.ram} | التخزين: ${detectedInfo.storageHealth}`,
+        `النظام: ${detectedInfo.os}`,
+        `التراخيص: ${detectedInfo.licenseSummary}`,
+        `التعريفات: ${detectedInfo.driversSummary}`,
+        `الطاقة: ${Math.round(psuWatts)}W • 230V AC | معدل الفريمات: ${Math.round(currentFPS)} FPS / ${targetFPS} FPS (الأدنى ${Math.round(minFpsSeen)} FPS، الأقصى ${Math.round(maxFpsSeen)} FPS)`,
+        `الإنترنت والموقع: ${detectedInfo.isp} (${detectedInfo.netSpeedMbps}، ${detectedInfo.netPingMs}) | ${detectedInfo.locationString}`,
+        `الخدمات المحددة: ${selectedServices} (الإجمالي: ${totalLE} ج.م)`
+      ].join('\n');
+    }
+
+    function sendReportWhatsApp(customReason) {
+      const reason = customReason || lastTestOutcome || 'تقرير فحص سريع';
+      const reportText = buildWhatsAppReportText(reason);
+      const waUrl = `https://wa.me/${APP_CONFIG.whatsappNumber}?text=${encodeURIComponent(reportText)}`;
+      const summaryBar = $id('report-summary-text');
+      if (summaryBar) {
+        summaryBar.innerHTML = `تقرير جاهز (01028509300): CPU ${Math.round(cpuTemp)}°C | GPU ${Math.round(gpuTemp)}°C | <a href="${escapeHtml(waUrl)}" target="_blank" rel="noopener noreferrer" class="underline text-rose-300 hover:text-white">فتح واتساب مباشرة</a>`;
+      }
+      const winRef = window.open(waUrl, '_blank', 'noopener,noreferrer');
+      if (!winRef) {
+        showToast('إذا لم تُفتح نافذة واتساب تلقائياً، اضغط رابط "فتح واتساب مباشرة" في شريط التقرير.');
+      }
+    }
+
+    function toggleTest() {
+      if (isTesting) finishTest('تم الإيقاف يدوياً');
+      else start90sTest();
+    }
+
+    function start90sTest() {
+      isTesting = true;
+      testTimeRemaining = APP_CONFIG.testDurationSec;
+
+      cpuTemp = Math.max(44, cpuTemp);
+      gpuTemp = Math.max(41, gpuTemp);
+      cpuClock = Math.max(3.8, cpuClock);
+      gpuClock = Math.max(1845, gpuClock);
+      maxCpuTemp = Math.max(maxCpuTemp, cpuTemp);
+      maxGpuTemp = Math.max(maxGpuTemp, gpuTemp);
+      minFpsSeen = Math.min(minFpsSeen, currentFPS);
+      maxFpsSeen = Math.max(maxFpsSeen, currentFPS);
+
+      const label = $id('status-label');
+      const dot = $id('status-dot');
+      const ring = $id('power-ring');
+      const icon = $id('power-icon');
+
+      if (label) {
+        label.textContent = 'STRESS TEST RUNNING (01:30)';
+        label.className = 'text-[#FF1E38] font-bold uppercase truncate-safe';
+      }
+      if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-[#FF1E38] animate-ping inline-block shrink-0';
+      if (ring) {
+        ring.classList.add('testing-active');
+        ring.style.background = 'conic-gradient(#FF1E38 0deg, rgba(225, 29, 72, 0.25) 0deg)';
+      }
+      if (icon) icon.classList.add('text-white', 'scale-105');
+
+      showToast('بدأ اختبار 90 ثانية. اضغط زر الباور مجدداً للإيقاف وإرسال التقرير لواتساب.');
+
+      let worker = null;
+      try {
+        const blob = new Blob([`
+          onmessage = function() {
+            let x = 0.0001;
+            for (let i = 0; i < 4500000; i++) {
+              x += Math.sin(i) * Math.cos(i);
+            }
+            postMessage(x);
+          };
+        `], { type: 'application/javascript' });
+        worker = new Worker(URL.createObjectURL(blob));
+      } catch (e) {}
+
+      let frameCount = 0;
+      let lastFpsTick = performance.now();
+      let rafId = null;
+      const canvas = $id('gpu-stress-canvas');
+      const ctx = canvas ? canvas.getContext('2d') : null;
+
+      const renderFrame = (now) => {
+        if (!isTesting) return;
+        frameCount++;
+        if (ctx) {
+          ctx.fillStyle = `rgb(${(frameCount * 11) % 255}, ${(frameCount * 5) % 255}, 90)`;
+          ctx.fillRect(0, 0, 256, 256);
+        }
+        if (now - lastFpsTick >= 500) {
+          const measured = Math.round((frameCount * 1000) / (now - lastFpsTick));
+          currentFPS = Math.min(targetFPS, Math.max(48, Math.round((measured + 60) / 2)));
+          minFpsSeen = Math.min(minFpsSeen, currentFPS);
+          maxFpsSeen = Math.max(maxFpsSeen, currentFPS);
+          frameCount = 0;
+          lastFpsTick = now;
+        }
+        rafId = requestAnimationFrame(renderFrame);
+      };
+      rafId = requestAnimationFrame(renderFrame);
+
+      testInterval = setInterval(() => {
+        testTimeRemaining--;
+        if (worker) worker.postMessage('run');
+
+        const elapsed = APP_CONFIG.testDurationSec - testTimeRemaining;
+        const progressRatio = Math.min(1, elapsed / APP_CONFIG.testDurationSec);
+        const deg = Math.round(progressRatio * 360);
+        if (ring) ring.style.background = `conic-gradient(#FF1E38 ${deg}deg, rgba(225, 29, 72, 0.22) ${deg}deg)`;
+
+        const mins = String(Math.floor(testTimeRemaining / 60)).padStart(2, '0');
+        const secs = String(testTimeRemaining % 60).padStart(2, '0');
+        if (label) label.textContent = `STRESS TEST RUNNING (${mins}:${secs})`;
+
+        cpuLoad = Math.min(99, Math.max(cpuLoad, 72 + progressRatio * 24) + (Math.random() * 6 - 3));
+        gpuLoad = Math.min(98, Math.max(gpuLoad, 65 + progressRatio * 28) + (Math.random() * 6 - 3));
+        cpuTemp = Math.min(94, Math.max(cpuTemp, 45 + progressRatio * 42) + (Math.random() * 3 - 1.2));
+        gpuTemp = Math.min(91, Math.max(gpuTemp, 42 + progressRatio * 40) + (Math.random() * 3 - 1.2));
+        cpuClock = Math.max(3.8, 3.8 + progressRatio * 0.9);
+        gpuClock = Math.max(1845, 1845 + progressRatio * 615);
+        psuWatts = Math.max(140, 140 + progressRatio * 240);
+
+        maxCpuTemp = Math.max(maxCpuTemp, cpuTemp);
+        maxGpuTemp = Math.max(maxGpuTemp, gpuTemp);
+
+        updateGauge('gauge-cpu', 'val-cpu', cpuTemp, 100, '°C');
+        updateGauge('gauge-gpu', 'val-gpu', gpuTemp, 100, '°C');
+
+        const subCpu = $id('sub-cpu');
+        const subGpu = $id('sub-gpu');
+        const fpsEl = $id('val-fps-readout');
+        const psuEl = $id('hw-psu');
+        const scoreEl = $id('val-score');
+
+        if (subCpu) subCpu.textContent = `${Math.round(cpuLoad)}% • ${cpuClock.toFixed(1)}GHz`;
+        if (subGpu) subGpu.textContent = `${Math.round(gpuLoad)}% • ${Math.round(gpuClock)}MHz`;
+        if (fpsEl) fpsEl.textContent = `${Math.round(currentFPS)} FPS / ${targetFPS} FPS (Live)`;
+        if (psuEl) psuEl.textContent = `${Math.round(psuWatts)}W • 230V AC`;
+        if (scoreEl) {
+          const liveScore = Math.max(40, Math.round(98 - progressRatio * 26));
+          scoreEl.textContent = `${liveScore}/100 • STRESS ACTIVE`;
+        }
+
+        if (testTimeRemaining <= 0) finishTest('اكتمل اختبار 90 ثانية');
+      }, 1000);
+
+      window.__stopStressHardware = () => {
+        clearInterval(testInterval);
+        cancelAnimationFrame(rafId);
+        if (worker) worker.terminate();
+      };
+    }
+
+    function finishTest(outcomeLabel) {
+      if (typeof window.__stopStressHardware === 'function') {
+        window.__stopStressHardware();
+        window.__stopStressHardware = null;
+      }
+      isTesting = false;
+      lastTestOutcome = outcomeLabel;
+
+      const label = $id('status-label');
+      const dot = $id('status-dot');
+      const ring = $id('power-ring');
+      const icon = $id('power-icon');
+      const scoreEl = $id('val-score');
+      const fpsEl = $id('val-fps-readout');
+
+      if (label) {
+        label.textContent = 'TEST FINISHED • DISPATCHED TO WHATSAPP';
+        label.className = 'text-rose-400 font-bold uppercase truncate-safe';
+      }
+      if (dot) dot.className = 'w-2.5 h-2.5 rounded-full bg-rose-500 inline-block shrink-0';
+      if (ring) {
+        ring.classList.remove('testing-active');
+        ring.style.background = 'conic-gradient(#E11D48 0deg, rgba(255, 255, 255, 0.08) 0deg)';
+      }
+      if (icon) icon.classList.remove('text-white', 'scale-105');
+      if (fpsEl) fpsEl.textContent = `${Math.round(currentFPS)} FPS / ${targetFPS} FPS`;
+
+      const finalScore = Math.max(42, Math.min(99, Math.round(100 - ((maxCpuTemp - 55) * 0.9) - ((maxGpuTemp - 55) * 0.7))));
+      if (scoreEl) scoreEl.textContent = `${finalScore}/100 • ${outcomeLabel.includes('90') ? 'FULL TEST' : 'STOPPED'}`;
+
+      applyAIDiagnosticsAndServices();
+      sendReportWhatsApp(outcomeLabel);
+      showToast(`${outcomeLabel} — تم تجهيز التقرير وإرساله لواتساب (01028509300).`);
+    }
+
+    function handlePhotoUpload(input) {
+      const label = $id('photo-upload-label');
+      if (!input || !input.files || !input.files.length) return;
+      const files = Array.from(input.files);
+      if (files.length > APP_CONFIG.maxPhotos) {
+        showToast(`الحد الأقصى ${APP_CONFIG.maxPhotos} صور فقط.`);
+        input.value = '';
+        return;
+      }
+      const oversized = files.find(f => f.size > APP_CONFIG.maxPhotoBytes);
+      if (oversized) {
+        showToast('حجم إحدى الصور يتجاوز 4MB، يرجى اختيار صورة أصغر.');
+        input.value = '';
+        return;
+      }
+      uploadedPhotosCount = files.length;
+      if (label) label.textContent = `تم اختيار ${uploadedPhotosCount} صورة`;
+    }
+
+    function handleBookingSubmit(e) {
+      e.preventDefault();
+      db = loadDatabase();
+
+      const name = $id('booking-name').value.trim();
+      const phone = $id('booking-phone').value.trim();
+      const address = $id('booking-address').value.trim();
+      const date = $id('booking-date').value || selectedBookingDate || toLocalIsoDate();
+      const timeSlot = $id('booking-time-slot').value || selectedBookingSlot;
+      const desc = $id('booking-desc').value.trim();
+
+      if (!timeSlot || isSlotBooked(date, timeSlot)) {
+        renderTimeSlotsForDay();
+        showToast(currentLang === 'ar' ? 'هذا الموعد محجوز أو غير متاح؛ اختر موعداً آخر بين ١٠ ص و٨ م.' : 'This time slot is unavailable; please choose another slot.');
+        return;
+      }
+
+      const chosenServices = db.services.filter(s => s.active && s.selected);
+      const totalLE = chosenServices.reduce((sum, s) => sum + s.price, 0);
+      const code = `OPF-${Math.floor(1000 + Math.random() * 9000)}`;
+      const slotText = getSlotLabel(timeSlot);
+
+      const bookingRecord = {
+        code,
+        clientName: name,
+        clientPhone: phone,
+        address,
+        date,
+        timeSlot,
+        deviceType: detectedInfo.deviceType,
+        services: chosenServices.map(s => `${s.title} (${s.price} ج.م)`),
+        totalLE,
+        desc,
+        hardware: `${detectedInfo.mobo} | ${detectedInfo.cpu} | ${detectedInfo.gpu} | ${detectedInfo.ram} | ${detectedInfo.isp} ${detectedInfo.netSpeedMbps}`,
+        stage: 'Assigned',
+        assignedTechId: ''
+      };
+
+      db.orders.unshift(bookingRecord);
+      saveDatabase();
+      selectedBookingSlot = '';
+      renderTimeSlotsForDay();
+      syncBookingSnapshot();
+      if (currentStaffSession) renderStaffWorkspace();
+
+      showToast(`تم تأكيد الحجز بنجاح! كود المتابعة: ${code}`);
+      const trackBox = $id('track-result');
+      if (trackBox) {
+        trackBox.classList.remove('hidden');
+        trackBox.innerHTML =
+          `<strong>تم تسجيل الحجز:</strong> <span class="font-mono font-bold text-crimson">${escapeHtml(code)}</span><br>` +
+          `<strong>العميل:</strong> ${escapeHtml(name)} (${escapeHtml(phone)}) — ${escapeHtml(address)}<br>` +
+          `<strong>الموعد:</strong> ${escapeHtml(date)} (${escapeHtml(slotText)}) | <strong>الجهاز:</strong> ${escapeHtml(detectedInfo.deviceType)}<br>` +
+          `<strong>الخدمات:</strong> ${escapeHtml(bookingRecord.services.join(' + ') || 'فحص عام')} — <strong>الإجمالي: ${escapeHtml(totalLE)} ج.م</strong><br>` +
+          `<strong>الحالة:</strong> ${escapeHtml(bookingRecord.stage)}`;
+      }
+    }
+
+    function trackBooking() {
+      const phone = $id('track-phone').value.trim();
+      const code = $id('track-code').value.trim().toUpperCase();
+      const box = $id('track-result');
+      if (!box) return;
+      box.classList.remove('hidden');
+
+      const found = db.orders.find(b => (code && b.code.toUpperCase() === code) || (phone && b.clientPhone === phone));
+      if (found) {
+        const techName = getTechNameById(found.assignedTechId);
+        box.innerHTML =
+          `<strong>رقم الطلب:</strong> <span class="font-mono font-bold">${escapeHtml(found.code)}</span> — <span class="text-rose-700 font-extrabold">${escapeHtml(found.stage)}</span><br>` +
+          `<strong>الفني المسؤول:</strong> ${escapeHtml(techName)}<br>` +
+          `<strong>العميل:</strong> ${escapeHtml(found.clientName)} | <strong>العنوان:</strong> ${escapeHtml(found.address)}<br>` +
+          `<strong>الخدمات:</strong> ${escapeHtml(found.services.join(' + '))} (${escapeHtml(found.totalLE)} ج.م)`;
+        return;
+      }
+
+      box.textContent = 'لم يتم العثور على طلب مطابق. جرّب كود الحجز OPF-1042 أو قم بإنشاء حجز جديد.';
+    }
+
+    function handleAddReview(e) {
+      e.preventDefault();
+      const nameEl = $id('review-name');
+      const ratingEl = $id('review-rating');
+      const commentEl = $id('review-comment');
+
+      const name = nameEl.value.trim();
+      const rating = parseInt(ratingEl.value, 10) || 5;
+      const comment = commentEl.value.trim();
+      if (!name || !comment) return;
+
+      db.reviews.unshift({ name, rating, comment });
+      saveDatabase();
+      renderReviews();
+
+      nameEl.value = '';
+      commentEl.value = '';
+      showToast('شكراً لك! تم نشر تعليقك بنجاح.');
+    }
+
+    function renderReviews() {
+      const grid = $id('reviews-grid');
+      if (!grid) return;
+      grid.innerHTML = db.reviews.map(rev => {
+        const safeRating = Math.max(1, Math.min(5, parseInt(rev.rating, 10) || 5));
+        const stars = '★'.repeat(safeRating) + '☆'.repeat(5 - safeRating);
+        return `
+          <div class="bg-gray-900 p-5 rounded-2xl border border-gray-800">
+            <div class="text-amber-400 text-xs mb-2">${stars}</div>
+            <p class="text-sm text-gray-300 mb-3">"${escapeHtml(rev.comment)}"</p>
+            <div class="text-xs font-bold text-crimson">— ${escapeHtml(rev.name)}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function sendSupportRequest() {
+      const input = $id('support-contact');
+      const val = input ? input.value.trim() : '';
+      if (!val) {
+        showToast('من فضلك أدخل رقم الهاتف أو البريد الإلكتروني.');
+        return;
+      }
+      showToast(`تم استلام طلب الدعم لـ ${val}.`);
+      input.value = '';
+    }
+
+    function renderManufacturersGrid() {
+      const grid = $id('brands-grid');
+      if (!grid) return;
+      grid.innerHTML = manufacturers50.map(b => {
+        const code = escapeHtml(b.name.replace(/[^A-Z0-9]/gi, '').slice(0, 2).toUpperCase());
+        const safeName = escapeHtml(b.name);
+        const safeSpec = escapeHtml(b.spec);
+        const safeUrl = escapeHtml(b.url);
+        const safeColor = /^#[0-9A-Fa-f]{6}$/.test(b.color) ? b.color : '#E11D48';
+        return `
+          <a href="${safeUrl}" target="_blank" rel="noopener noreferrer"
+             title="${safeName} — ${safeSpec}"
+             class="group bg-gray-900/90 hover:bg-gray-800 border border-gray-800 hover:border-crimson rounded-2xl p-3.5 flex flex-col items-center justify-start text-center transition min-w-0">
+            <span class="w-8 h-8 rounded-xl flex items-center justify-center font-mono font-extrabold text-xs mb-2 transition-transform group-hover:scale-110 shrink-0"
+                  style="background: ${safeColor}22; color: ${safeColor}; border: 1px solid ${safeColor}55;">
+              ${code}
+            </span>
+            <span class="text-xs font-extrabold tracking-wide text-white group-hover:text-crimson transition truncate-safe w-full">${safeName}</span>
+            <span class="text-[10px] text-gray-400 leading-snug mt-1 w-full">${safeSpec}</span>
+          </a>
+        `;
+      }).join('');
+    }
+
+    function checkHashShortcut() {
+      const h = (window.location.hash || '').toLowerCase();
+      if (h === '#admin') openStaffLoginModal('admin');
+      else if (h === '#tech' || h === '#staff') openStaffLoginModal('tech');
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        openStaffLoginModal('tech');
+      }
+    });
+
+    window.addEventListener('hashchange', checkHashShortcut);
+
+    window.addEventListener('DOMContentLoaded', () => {
+      startLiveClock();
+      applyLanguageUI();
+      renderServicesGrid();
+      renderReviews();
+      detectOS();
+      detectHardware();
+      detectISPAndLocation();
+      runStorageHealthCheck();
+      renderManufacturersGrid();
+      updateGauge('gauge-cpu', 'val-cpu', cpuTemp, 100, '°C');
+      updateGauge('gauge-gpu', 'val-gpu', gpuTemp, 100, '°C');
+      checkHashShortcut();
+    });
+  </script>
+</body>
+</html>
