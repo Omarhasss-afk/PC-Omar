@@ -1,0 +1,14 @@
+name = "pc-omar"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+[[d1_databases]]
+binding = "DB"
+database_name = "pc-omar-db"
+database_id = ""d1_databases": [{
+    "binding": "DB",
+    "database_name": "omar-pc-db",
+    "database_id": "cb150384-5950-49bc-a963-c61944b3406e"
+ }]"
+[assets]
+directory = "./public"
+binding = "ASSETS"
